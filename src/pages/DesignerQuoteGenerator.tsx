@@ -80,15 +80,7 @@ const CATEGORY_IMAGES: Record<string, string> = {
   'Plywood & Boards': 'https://images.pexels.com/photos/129733/pexels-photo-129733.jpeg?auto=compress&cs=tinysrgb&w=200&h=200',
 };
 
-const getMaterialImage = (item: { name: string; material_id?: string }, materials: Material[]): string | null => {
-  if (item.material_id) {
-    const mat = materials.find(m => m.id === item.material_id);
-    if (mat) {
-      if (MATERIAL_IMAGES[mat.name]) return MATERIAL_IMAGES[mat.name];
-      if (CATEGORY_IMAGES[mat.category]) return CATEGORY_IMAGES[mat.category];
-    }
-  }
-  if (MATERIAL_IMAGES[item.name]) return MATERIAL_IMAGES[item.name];
+const getMaterialImage = (): string | null => {
   return null;
 };
 
