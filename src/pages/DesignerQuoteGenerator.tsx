@@ -1374,7 +1374,7 @@ const DesignerQuoteGenerator = () => {
                                   value={item.description}
                                   onChange={(e) => handleItemChange(index, 'description', e.target.value)}
                                   rows={2}
-                                  className="w-full border border-gray-300 rounded-lg px-2 py-1.5 focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm min-w-[140px] resize-none"
+                                  className="w-full border border-gray-300 rounded-lg px-2 py-1.5 focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm min-w-[140px] resize-y"
                                   placeholder="Describe the item"
                                 />
                               )}
