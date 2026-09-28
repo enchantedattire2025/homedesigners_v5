@@ -768,7 +768,7 @@ const DesignerQuoteGenerator = () => {
         depth_unit: item.section === 'modular' ? item.depth_unit : null,
         area_sqft: item.section === 'modular' ? item.area_sqft : null,
         per_sqft_rate: item.section === 'modular' ? item.per_sqft_rate : null,
-        image_url: getMaterialImage(item, materials)
+        image_url: item.image_url || null
       }));
       
       const { error: itemsError } = await supabase
