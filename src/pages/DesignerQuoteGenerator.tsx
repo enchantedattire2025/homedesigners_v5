@@ -25,7 +25,8 @@ import {
   Search,
   X,
   ShoppingCart,
-  Mic
+  Mic,
+  Upload
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useDesignerProfile } from '../hooks/useDesignerProfile';
@@ -60,46 +61,106 @@ interface Material {
   quality_grade: string;
 }
 
-const MATERIAL_IMAGES: Record<string, string> = {
-  'Clear Glass - 5mm': 'https://images.pexels.com/photos/54086/rain-raindrops-windowpane-window-54086.png?auto=compress&cs=tinysrgb&w=200&h=200',
-  'Designer Mirror - 5mm': 'https://images.pexels.com/photos/32269120/pexels-photo-32269120.png?auto=compress&cs=tinysrgb&w=200&h=200',
-  'Tinted Glass - 5mm': 'https://images.pexels.com/photos/2265021/pexels-photo-2265021.jpeg?auto=compress&cs=tinysrgb&w=200&h=200',
-  'Wall Panels - 3D Decorative': 'https://images.pexels.com/photos/11235883/pexels-photo-11235883.jpeg?auto=compress&cs=tinysrgb&w=200&h=200',
+const compressImageToDataUrl = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    if (!file.type.startsWith('image/')) {
+      reject(new Error('Please select an image file.'));
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      reject(new Error('Image must be smaller than 10 MB.'));
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const image = new Image();
+      image.onload = () => {
+        const maxSize = 1200;
+        const scale = Math.min(1, maxSize / Math.max(image.width, image.height));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(image.width * scale));
+        canvas.height = Math.max(1, Math.round(image.height * scale));
+
+        const context = canvas.getContext('2d');
+        if (!context) {
+          reject(new Error('Could not process the selected image.'));
+          return;
+        }
+
+        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', 0.82));
+      };
+      image.onerror = () => reject(new Error('Could not read the selected image.'));
+      image.src = String(reader.result);
+    };
+    reader.onerror = () => reject(new Error('Could not read the selected image.'));
+    reader.readAsDataURL(file);
+  });
 };
 
-const CATEGORY_IMAGES: Record<string, string> = {
-  'Accessories': 'https://images.pexels.com/photos/54086/rain-raindrops-windowpane-window-54086.png?auto=compress&cs=tinysrgb&w=200&h=200',
-  'Channels & Profiles': 'https://images.pexels.com/photos/39057160/pexels-photo-39057160.jpeg?auto=compress&cs=tinysrgb&w=200&h=200',
-  'Countertops': 'https://images.pexels.com/photos/11285437/pexels-photo-11285437.png?auto=compress&cs=tinysrgb&w=200&h=200',
-  'Fabrics & Upholstery': 'https://images.pexels.com/photos/19579420/pexels-photo-19579420.jpeg?auto=compress&cs=tinysrgb&w=200&h=200',
-  'Flooring': 'https://images.pexels.com/photos/129731/pexels-photo-129731.jpeg?auto=compress&cs=tinysrgb&w=200&h=200',
-  'Hardware': 'https://images.pexels.com/photos/5556176/pexels-photo-5556176.jpeg?auto=compress&cs=tinysrgb&w=200&h=200',
-  'Laminates & Veneers': 'https://images.pexels.com/photos/11285328/pexels-photo-11285328.png?auto=compress&cs=tinysrgb&w=200&h=200',
-  'Lighting': 'https://images.pexels.com/photos/32216281/pexels-photo-32216281.png?auto=compress&cs=tinysrgb&w=200&h=200',
-  'Paints & Finishes': 'https://images.pexels.com/photos/994164/pexels-photo-994164.jpeg?auto=compress&cs=tinysrgb&w=200&h=200',
-  'Plywood & Boards': 'https://images.pexels.com/photos/129733/pexels-photo-129733.jpeg?auto=compress&cs=tinysrgb&w=200&h=200',
-};
+interface ItemThumbnailProps {
+  src: string | null | undefined;
+  itemKey: string;
+  onUpload: (file: File) => void;
+  onRemove: () => void;
+}
 
-const getMaterialImage = (): string | null => {
-  return null;
-};
+const ItemThumbnail = ({ src, itemKey, onUpload, onRemove }: ItemThumbnailProps) => {
+  const inputId = `quote-item-image-${itemKey}`;
 
-const ItemThumbnail = ({ src }: { src: string | null }) => {
-  if (!src) {
-    return (
-      <div className="w-[200px] h-[200px] bg-gray-100 rounded-lg flex items-center justify-center text-gray-400 text-xs text-center px-2">
-        No image
-      </div>
-    );
-  }
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) onUpload(file);
+    event.target.value = '';
+  };
 
   return (
-    <div className="resize overflow-hidden w-[200px] h-[200px] min-w-[100px] min-h-[100px] max-w-[400px] max-h-[400px] border border-gray-200 rounded-lg">
-      <img
-        src={src}
-        alt="material"
-        className="w-full h-full object-contain"
+    <div className="w-[200px]">
+      <input
+        id={inputId}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleFileChange}
       />
+
+      {src ? (
+        <div className="space-y-2">
+          <div className="resize overflow-hidden w-[200px] h-[200px] min-w-[100px] min-h-[100px] max-w-[400px] max-h-[400px] border border-gray-200 rounded-lg bg-gray-50">
+            <img
+              src={src}
+              alt="Uploaded item"
+              className="w-full h-full object-contain"
+            />
+          </div>
+          <div className="flex gap-2">
+            <label
+              htmlFor={inputId}
+              className="cursor-pointer flex-1 text-center px-2 py-1.5 rounded-md bg-primary-50 text-primary-700 border border-primary-200 hover:bg-primary-100 text-xs font-medium"
+            >
+              Change Image
+            </label>
+            <button
+              type="button"
+              onClick={onRemove}
+              className="px-2 py-1.5 rounded-md bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 text-xs font-medium"
+            >
+              Remove
+            </button>
+          </div>
+        </div>
+      ) : (
+        <label
+          htmlFor={inputId}
+          className="w-[200px] h-[200px] border-2 border-dashed border-gray-300 bg-gray-50 rounded-lg flex flex-col items-center justify-center text-gray-500 hover:border-primary-400 hover:bg-primary-50/30 cursor-pointer transition-colors"
+        >
+          <Upload className="w-7 h-7 mb-2" />
+          <span className="text-xs font-medium">Upload Image</span>
+          <span className="text-[10px] mt-1 text-gray-400">PNG, JPG, WEBP</span>
+        </label>
+      )}
     </div>
   );
 };
@@ -682,6 +743,32 @@ const DesignerQuoteGenerator = () => {
         ...prev,
         items: updatedItems
       };
+    });
+  };
+
+  const handleItemImageUpload = async (index: number, file: File) => {
+    try {
+      setError(null);
+      const imageUrl = await compressImageToDataUrl(file);
+
+      setQuoteData(prev => {
+        const items = [...prev.items];
+        if (!items[index]) return prev;
+        items[index] = { ...items[index], image_url: imageUrl };
+        return { ...prev, items };
+      });
+    } catch (error: any) {
+      console.error('Error processing item image:', error);
+      setError(error.message || 'Failed to upload image');
+    }
+  };
+
+  const handleItemImageRemove = (index: number) => {
+    setQuoteData(prev => {
+      const items = [...prev.items];
+      if (!items[index]) return prev;
+      items[index] = { ...items[index], image_url: null };
+      return { ...prev, items };
     });
   };
 
@@ -1387,7 +1474,12 @@ const DesignerQuoteGenerator = () => {
                               )}
                             </td>
                             <td className="px-3 py-2.5 w-[220px] min-w-[220px]">
-                            <ItemThumbnail src={getMaterialImage(item, materials)} />
+                            <ItemThumbnail
+                                src={item.image_url}
+                                itemKey={`edit-${item.section}-${index}`}
+                                onUpload={(file) => handleItemImageUpload(index, file)}
+                                onRemove={() => handleItemImageRemove(index)}
+                              />
                               </td>
                             <td className="px-3 py-2.5">
                               <input
@@ -1580,7 +1672,12 @@ const DesignerQuoteGenerator = () => {
                               />
                             </td>
                             <td className="px-3 py-2.5">
-                              <ItemThumbnail src={getMaterialImage(item, materials)} />
+                              <ItemThumbnail
+                                src={item.image_url}
+                                itemKey={`edit-${item.section}-${index}`}
+                                onUpload={(file) => handleItemImageUpload(index, file)}
+                                onRemove={() => handleItemImageRemove(index)}
+                              />
                             </td>
                             <td className="px-3 py-2.5">
                               <input
@@ -1832,7 +1929,13 @@ const DesignerQuoteGenerator = () => {
                                   <td className="py-3 px-4 font-medium text-secondary-800">{item.name}</td>
                                   <td className="py-3 px-4 text-gray-600">{item.description || '-'}</td>
                                   <td className="py-3 px-4">
-                                    <ItemThumbnail src={getMaterialImage(item, materials)} />
+                                    {item.image_url ? (
+                                    <div className="w-[120px] h-[120px] border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
+                                      <img src={item.image_url} alt="Item" className="w-full h-full object-contain" />
+                                    </div>
+                                  ) : (
+                                    <span className="text-gray-400 text-xs">No image</span>
+                                  )}
                                   </td>
                                   <td className="py-3 px-4 text-right">{item.number_of_units}</td>
                                   <td className="py-3 px-4 text-right">{item.quantity}</td>
@@ -1857,7 +1960,13 @@ const DesignerQuoteGenerator = () => {
                                   <td className="py-3 px-4 font-medium text-secondary-800">{item.name}</td>
                                   <td className="py-3 px-4 text-gray-600">{item.description || '-'}</td>
                                   <td className="py-3 px-4">
-                                    <ItemThumbnail src={getMaterialImage(item, materials)} />
+                                    {item.image_url ? (
+                                    <div className="w-[120px] h-[120px] border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
+                                      <img src={item.image_url} alt="Item" className="w-full h-full object-contain" />
+                                    </div>
+                                  ) : (
+                                    <span className="text-gray-400 text-xs">No image</span>
+                                  )}
                                   </td>
                                   <td className="py-3 px-4 text-right">{item.number_of_units}</td>
                                   <td className="py-3 px-4 text-right">{item.area_sqft ?? 0} sq ft</td>
