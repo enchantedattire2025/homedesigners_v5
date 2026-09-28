@@ -11,6 +11,37 @@ import {
 import { supabase } from '../lib/supabase';
 import { downloadFileFromStorage } from '../utils/downloadFile';
 
+const MATERIAL_IMAGES: Record<string, string> = {
+  'Clear Glass - 5mm': 'https://images.pexels.com/photos/54086/rain-raindrops-windowpane-window-54086.png?auto=compress&cs=tinysrgb&w=200&h=200',
+  'Designer Mirror - 5mm': 'https://images.pexels.com/photos/32269120/pexels-photo-32269120.png?auto=compress&cs=tinysrgb&w=200&h=200',
+  'Tinted Glass - 5mm': 'https://images.pexels.com/photos/2265021/pexels-photo-2265021.jpeg?auto=compress&cs=tinysrgb&w=200&h=200',
+  'Wall Panels - 3D Decorative': 'https://images.pexels.com/photos/11235883/pexels-photo-11235883.jpeg?auto=compress&cs=tinysrgb&w=200&h=200',
+};
+
+const CATEGORY_IMAGES: Record<string, string> = {
+  'Accessories': 'https://images.pexels.com/photos/54086/rain-raindrops-windowpane-window-54086.png?auto=compress&cs=tinysrgb&w=200&h=200',
+  'Channels & Profiles': 'https://images.pexels.com/photos/39057160/pexels-photo-39057160.jpeg?auto=compress&cs=tinysrgb&w=200&h=200',
+  'Countertops': 'https://images.pexels.com/photos/11285437/pexels-photo-11285437.png?auto=compress&cs=tinysrgb&w=200&h=200',
+  'Fabrics & Upholstery': 'https://images.pexels.com/photos/19579420/pexels-photo-19579420.jpeg?auto=compress&cs=tinysrgb&w=200&h=200',
+  'Flooring': 'https://images.pexels.com/photos/129731/pexels-photo-129731.jpeg?auto=compress&cs=tinysrgb&w=200&h=200',
+  'Hardware': 'https://images.pexels.com/photos/5556176/pexels-photo-5556176.jpeg?auto=compress&cs=tinysrgb&w=200&h=200',
+  'Laminates & Veneers': 'https://images.pexels.com/photos/11285328/pexels-photo-11285328.png?auto=compress&cs=tinysrgb&w=200&h=200',
+  'Lighting': 'https://images.pexels.com/photos/32216281/pexels-photo-32216281.png?auto=compress&cs=tinysrgb&w=200&h=200',
+  'Paints & Finishes': 'https://images.pexels.com/photos/994164/pexels-photo-994164.jpeg?auto=compress&cs=tinysrgb&w=200&h=200',
+  'Plywood & Boards': 'https://images.pexels.com/photos/129733/pexels-photo-129733.jpeg?auto=compress&cs=tinysrgb&w=200&h=200',
+};
+
+const getMaterialImage = (item: { name: string; image_url?: string | null }): string | null => {
+  if (item.image_url) return item.image_url;
+  if (MATERIAL_IMAGES[item.name]) return MATERIAL_IMAGES[item.name];
+  return null;
+};
+
+const ItemThumbnail = ({ src }: { src: string | null }) => {
+  if (!src) return <div className="w-[200px] h-[200px] bg-gray-100 rounded-lg flex items-center justify-center text-gray-400 text-xs text-center px-2">No image</div>;
+  return <img src={src} alt="material" className="w-[200px] h-[200px] object-contain rounded-lg border border-gray-200" />;
+};
+
 interface QuoteItem {
   id: string;
   name: string;
@@ -32,6 +63,7 @@ interface QuoteItem {
   depth_unit?: string;
   area_sqft?: number;
   per_sqft_rate?: number;
+  image_url?: string | null;
 }
 
 interface Quote {
@@ -312,6 +344,7 @@ const QuoteViewer = () => {
                   <tr>
                     <th className="text-left py-3 px-4 font-semibold text-secondary-800 border-b">Item</th>
                     <th className="text-left py-3 px-4 font-semibold text-secondary-800 border-b">Description</th>
+                    <th className="text-left py-3 px-4 font-semibold text-secondary-800 border-b">Image</th>
                     <th className="text-right py-3 px-4 font-semibold text-secondary-800 border-b">Units</th>
                     <th className="text-right py-3 px-4 font-semibold text-secondary-800 border-b">Total Measurement</th>
                     <th className="text-right py-3 px-4 font-semibold text-secondary-800 border-b">Unit</th>
@@ -327,12 +360,15 @@ const QuoteViewer = () => {
                   {quote.items.filter(i => i.section !== 'modular').length > 0 && (
                     <>
                       <tr className="bg-primary-50">
-                        <td colSpan={11} className="py-2 px-4 font-semibold text-primary-700 text-sm border-b">On-Site Work</td>
+                        <td colSpan={12} className="py-2 px-4 font-semibold text-primary-700 text-sm border-b">On-Site Work</td>
                       </tr>
                       {quote.items.filter(i => i.section !== 'modular').map((item) => (
                         <tr key={item.id} className="border-b border-gray-100">
                           <td className="py-3 px-4 font-medium text-gray-800">{item.name}</td>
                           <td className="py-3 px-4 text-gray-600 text-sm">{item.description || '-'}</td>
+                          <td className="py-3 px-4">
+                            <ItemThumbnail src={getMaterialImage(item)} />
+                          </td>
                           <td className="py-3 px-4 text-right text-gray-800">{item.number_of_units || 1}</td>
                           <td className="py-3 px-4 text-right text-gray-800">{item.quantity}</td>
                           <td className="py-3 px-4 text-right text-gray-600">{item.unit}</td>
@@ -349,12 +385,15 @@ const QuoteViewer = () => {
                   {quote.items.filter(i => i.section === 'modular').length > 0 && (
                     <>
                       <tr className="bg-primary-50">
-                        <td colSpan={11} className="py-2 px-4 font-semibold text-primary-700 text-sm border-b">Modular Work</td>
+                        <td colSpan={12} className="py-2 px-4 font-semibold text-primary-700 text-sm border-b">Modular Work</td>
                       </tr>
                       {quote.items.filter(i => i.section === 'modular').map((item) => (
                         <tr key={item.id} className="border-b border-gray-100">
                           <td className="py-3 px-4 font-medium text-gray-800">{item.name}</td>
                           <td className="py-3 px-4 text-gray-600 text-sm">{item.description || '-'}</td>
+                          <td className="py-3 px-4">
+                            <ItemThumbnail src={getMaterialImage(item)} />
+                          </td>
                           <td className="py-3 px-4 text-right text-gray-800">{item.number_of_units || 1}</td>
                           <td className="py-3 px-4 text-right text-gray-800">{item.area_sqft ?? 0} sq ft</td>
                           <td className="py-3 px-4 text-right text-gray-600">sq.ft</td>
