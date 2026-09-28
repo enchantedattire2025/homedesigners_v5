@@ -93,8 +93,23 @@ const getMaterialImage = (item: { name: string; material_id?: string }, material
 };
 
 const ItemThumbnail = ({ src }: { src: string | null }) => {
-  if (!src) return <div className="w-[200px] h-[200px] bg-gray-100 rounded-lg flex items-center justify-center text-gray-400 text-xs text-center px-2">No image</div>;
-  return <img src={src} alt="material" className="w-[200px] h-[200px] object-contain rounded-lg border border-gray-200" />;
+  if (!src) {
+    return (
+      <div className="w-[200px] h-[200px] bg-gray-100 rounded-lg flex items-center justify-center text-gray-400 text-xs text-center px-2">
+        No image
+      </div>
+    );
+  }
+
+  return (
+    <div className="resize overflow-hidden w-[200px] h-[200px] min-w-[100px] min-h-[100px] max-w-[400px] max-h-[400px] border border-gray-200 rounded-lg">
+      <img
+        src={src}
+        alt="material"
+        className="w-full h-full object-contain"
+      />
+    </div>
+  );
 };
 
 type QuoteSection = 'on_site' | 'modular';
