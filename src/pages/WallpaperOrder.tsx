@@ -114,6 +114,26 @@ export default function WallpaperOrder() {
     }
   }, [location]);
 
+  // Dynamically load the PayPal SDK only when the user reaches the payment step
+  useEffect(() => {
+    if (paymentStep !== 'payment') return;
+    if (window.paypal) {
+      setPaypalReady(true);
+      return;
+    }
+    const existing = document.getElementById('paypal-sdk-script');
+    if (existing) {
+      existing.addEventListener('load', () => setPaypalReady(true));
+      return;
+    }
+    const script = document.createElement('script');
+    script.id = 'paypal-sdk-script';
+    script.src = 'https://www.paypal.com/sdk/js?client-id=AaY7R9hGocTUocwCDxme_AGkXSzhFRySbQAPBiX6Rni99aihEYr-zFMxM6opBjp3Nm5qbmMbRE5LI0IH&currency=USD';
+    script.async = true;
+    script.onload = () => setPaypalReady(true);
+    document.head.appendChild(script);
+  }, [paymentStep]);
+
   useEffect(() => {
     if (paymentStep === 'payment' && window.paypal && !paypalButtonsRendered.current) {
       setPaypalReady(true);
