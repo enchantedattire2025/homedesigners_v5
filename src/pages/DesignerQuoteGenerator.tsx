@@ -1379,9 +1379,9 @@ const DesignerQuoteGenerator = () => {
                                 />
                               )}
                             </td>
-                            <td className="px-3 py-2.5">
-                              <ItemThumbnail src={getMaterialImage(item, materials)} />
-                            </td>
+                            <td className="px-3 py-2.5 w-[220px] min-w-[220px]">
+                            <ItemThumbnail src={getMaterialImage(item, materials)} />
+                              </td>
                             <td className="px-3 py-2.5">
                               <input
                                 type="number"
