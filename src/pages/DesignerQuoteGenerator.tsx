@@ -1204,7 +1204,7 @@ const DesignerQuoteGenerator = () => {
                             <th className="text-left px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap">Material / Component</th>
                             <th className="text-left px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap">Item Name *</th>
                             <th className="text-left px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap">Description</th>
-                            <th className="text-left px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap">Image</th>
+                            <th className="text-left px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap w-[220px] min-w-[220px]">Image</th>
                             <th className="text-right px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap">No. of Units</th>
                             <th className="text-right px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap">Total Measurement</th>
                             <th className="text-left px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap">Unit</th>
