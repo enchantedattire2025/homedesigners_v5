@@ -637,16 +637,20 @@ const DesignerSubscription: React.FC = () => {
 
                   {/* BUTTON */}
                   <button
-                      onClick={() => handleUpgrade(plan)}
-                      disabled={isCurrentPlan}
-                      className={`w-full py-3 px-4 rounded-lg font-semibold transition-colors ${
-                        isCurrentPlan
-                          ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                          : 'bg-blue-800 text-white hover:bg-blue-900'
-                      }`}
-                    >
-                      {isCurrentPlan ? 'Current Plan' : 'Start Subscription'}
-                    </button>
+                    onClick={() =>
+                      handleUpgrade(plan)
+                    }
+                    disabled={isCurrentPlan}
+                    className={`w-full py-3 px-4 rounded-lg font-semibold transition-colors ${
+                      isCurrentPlan
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                    }`}
+                  >
+                    {isCurrentPlan
+                      ? 'Current Plan'
+                      : 'Start Subscription'}
+                  </button>
 
                 </div>
 
