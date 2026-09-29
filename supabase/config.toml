@@ -1,0 +1,26 @@
+[functions.chat-ai]
+verify_jwt = true
+
+[functions.gemini-chat]
+verify_jwt = true
+
+[functions.get-customer-quotes]
+verify_jwt = true
+
+[functions.openai-chat]
+verify_jwt = true
+
+[functions.process-whatsapp-queue]
+verify_jwt = true
+
+[functions.send-order-receipt-email]
+verify_jwt = true
+
+[functions.send-whatsapp-notification]
+verify_jwt = true
+
+[functions.vastu-analysis]
+verify_jwt = true
+
+[functions.send-bill-email]
+verify_jwt = true

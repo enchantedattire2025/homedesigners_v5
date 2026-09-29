@@ -430,9 +430,6 @@ const saveBill = async (sendToCustomer = false) => {
         setBill(updatedBill);
       }
 
-      setSuccess(sendToCustomer ? 'Bill sent to customer!' : 'Bill saved successfully!');
-      setTimeout(() => setSuccess(null), 3000);
-
       // Re-fetch items and versions
       const { data: freshItems } = await supabase
         .from('bill_items')
@@ -459,6 +456,56 @@ const saveBill = async (sendToCustomer = false) => {
         .order('version_number', { ascending: false });
 
       if (versionsData) setVersions(versionsData);
+
+      if (sendToCustomer) {
+        setSuccess('Sending bill email to customer...');
+
+        const emailPayload = {
+          billNumber: (updatedBill ?? bill).bill_number,
+          customerEmail: project?.email || '',
+          customerName: project?.name || '',
+          customerPhone: project?.phone || '',
+          customerLocation: project?.location || '',
+          projectName: project?.project_name || '',
+          designerName: designer?.name,
+          designerSpecialization: (designer as any)?.specialization,
+          items: freshItems ?? items,
+          subtotal,
+          discountAmount,
+          taxRate: includeTax ? taxRate : 0,
+          taxAmount,
+          totalAmount,
+          notes,
+        };
+
+        try {
+          const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-bill-email`;
+          const { data: sessionData } = await supabase.auth.getSession();
+          const res = await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${sessionData?.session?.access_token}`,
+              apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+            },
+            body: JSON.stringify(emailPayload),
+          });
+
+          if (!res.ok) {
+            const errBody = await res.json().catch(() => ({}));
+            throw new Error(errBody.error || `Email failed (${res.status})`);
+          }
+
+          setSuccess('Bill sent to customer! Email delivered successfully.');
+        } catch (emailErr: any) {
+          console.error('Error sending bill email:', emailErr);
+          setSuccess('Bill saved and marked as sent, but email delivery failed. You can download the PDF and share it manually.');
+          setError(`Email error: ${emailErr.message}`);
+        }
+      } else {
+        setSuccess('Bill saved successfully!');
+      }
+      setTimeout(() => setSuccess(null), 4000);
     } catch (err: any) {
       console.error('Error saving bill:', err);
       setError(err.message || 'Failed to save bill');
