@@ -21,7 +21,7 @@ const SubscriptionExpiredModal: React.FC<
 
   return (
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50"
+      className="fixed top-16 left-0 right-0 bottom-0 z-[9999] flex items-center justify-center bg-black/50"
       onClick={(e) => {
         // Prevent closing when clicking outside the popup
         e.stopPropagation();
