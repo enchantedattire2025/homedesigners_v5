@@ -996,9 +996,7 @@ const PaymentModal: React.FC<
           <p className="text-sm text-blue-800">
 
             <strong>Note:</strong>{' '}
-            This is a demo payment interface.
-            In production, this would integrate
-            with Razorpay or Stripe payment gateway.
+            .
 
           </p>
 
