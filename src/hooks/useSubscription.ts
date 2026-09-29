@@ -14,6 +14,7 @@ interface SubscriptionStatus {
 
 export const useSubscription = () => {
   const { user } = useAuth();
+
   const [subscription, setSubscription] = useState<SubscriptionStatus>({
     isActive: false,
     isTrial: false,
@@ -23,6 +24,7 @@ export const useSubscription = () => {
     subscriptionId: null,
     planName: null
   });
+
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -31,23 +33,52 @@ export const useSubscription = () => {
 
   const checkSubscription = async () => {
     if (!user) {
+      setSubscription({
+        isActive: false,
+        isTrial: false,
+        isExpired: false,
+        daysRemaining: 0,
+        status: 'none',
+        subscriptionId: null,
+        planName: null
+      });
+
       setLoading(false);
       return;
     }
 
+    setLoading(true);
+
     try {
-      const { data: designerData } = await supabase
+      // Get designer record
+      const { data: designerData, error: designerError } = await supabase
         .from('designers')
         .select('id')
         .eq('user_id', user.id)
         .maybeSingle();
 
+      if (designerError) {
+        throw designerError;
+      }
+
+      // Designer not found
       if (!designerData) {
+        setSubscription({
+          isActive: false,
+          isTrial: false,
+          isExpired: true,
+          daysRemaining: 0,
+          status: 'none',
+          subscriptionId: null,
+          planName: null
+        });
+
         setLoading(false);
         return;
       }
 
-      const { data: subData } = await supabase
+      // Get designer subscription
+      const { data: subData, error: subError } = await supabase
         .from('designer_subscriptions')
         .select(`
           id,
@@ -59,6 +90,11 @@ export const useSubscription = () => {
         .eq('designer_id', designerData.id)
         .maybeSingle();
 
+      if (subError) {
+        throw subError;
+      }
+
+      // No subscription found
       if (!subData) {
         setSubscription({
           isActive: false,
@@ -69,32 +105,94 @@ export const useSubscription = () => {
           subscriptionId: null,
           planName: null
         });
+
         setLoading(false);
         return;
       }
 
       const now = new Date();
+
       let daysRemaining = 0;
       let isActive = false;
       let isTrial = false;
       let isExpired = false;
 
+      // --------------------------------
+      // TRIAL SUBSCRIPTION
+      // --------------------------------
       if (subData.status === 'trial') {
-        const trialEnd = new Date(subData.trial_end_date);
-        const diffTime = trialEnd.getTime() - now.getTime();
-        daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        isTrial = true;
-        isActive = daysRemaining > 0;
-        isExpired = daysRemaining <= 0;
-      } else if (subData.status === 'active') {
-        isActive = true;
-        if (subData.subscription_end_date) {
-          const subEnd = new Date(subData.subscription_end_date);
-          const diffTime = subEnd.getTime() - now.getTime();
-          daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        if (subData.trial_end_date) {
+          const trialEnd = new Date(subData.trial_end_date);
+
+          const diffTime =
+            trialEnd.getTime() - now.getTime();
+
+          daysRemaining = Math.ceil(
+            diffTime / (1000 * 60 * 60 * 24)
+          );
+
+          isTrial = daysRemaining > 0;
+          isActive = daysRemaining > 0;
+          isExpired = daysRemaining <= 0;
+        } else {
+          isTrial = false;
+          isActive = false;
+          isExpired = true;
         }
-      } else if (subData.status === 'expired' || subData.status === 'cancelled') {
+      }
+
+      // --------------------------------
+      // ACTIVE SUBSCRIPTION
+      // --------------------------------
+      else if (subData.status === 'active') {
+        if (subData.subscription_end_date) {
+          const subscriptionEnd = new Date(
+            subData.subscription_end_date
+          );
+
+          const diffTime =
+            subscriptionEnd.getTime() - now.getTime();
+
+          daysRemaining = Math.ceil(
+            diffTime / (1000 * 60 * 60 * 24)
+          );
+
+          if (daysRemaining > 0) {
+            isActive = true;
+            isExpired = false;
+          } else {
+            isActive = false;
+            isExpired = true;
+          }
+        } else {
+          // Active subscription without an end date
+          isActive = true;
+          isExpired = false;
+          daysRemaining = 0;
+        }
+      }
+
+      // --------------------------------
+      // EXPIRED / CANCELLED
+      // --------------------------------
+      else if (
+        subData.status === 'expired' ||
+        subData.status === 'cancelled'
+      ) {
+        isActive = false;
+        isTrial = false;
         isExpired = true;
+        daysRemaining = 0;
+      }
+
+      // --------------------------------
+      // UNKNOWN STATUS
+      // --------------------------------
+      else {
+        isActive = false;
+        isTrial = false;
+        isExpired = true;
+        daysRemaining = 0;
       }
 
       setSubscription({
@@ -108,10 +206,24 @@ export const useSubscription = () => {
       });
     } catch (error) {
       console.error('Error checking subscription:', error);
+
+      setSubscription({
+        isActive: false,
+        isTrial: false,
+        isExpired: true,
+        daysRemaining: 0,
+        status: 'error',
+        subscriptionId: null,
+        planName: null
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  return { subscription, loading, refresh: checkSubscription };
+  return {
+    subscription,
+    loading,
+    refresh: checkSubscription
+  };
 };
