@@ -115,7 +115,6 @@ const DashboardRedirectHandler = () => {
 };
 
 function App() {
-  const { subscription, loading: subscriptionLoading } = useSubscription();
   useEffect(() => {
     processQueuedNotifications();
 
