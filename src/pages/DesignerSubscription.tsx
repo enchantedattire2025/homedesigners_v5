@@ -996,7 +996,7 @@ const PaymentModal: React.FC<
           <p className="text-sm text-blue-800">
 
             <strong>Note:</strong>{' '}
-            .
+            
 
           </p>
 
