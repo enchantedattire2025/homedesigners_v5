@@ -13,6 +13,8 @@ import ProtectedDesignerRoute from './components/ProtectedDesignerRoute';
 import Home from './pages/Home';
 import { forceLogoutAll } from './utils/clearAuth';
 import { debugAuthState } from './utils/debugDesigner';
+import { useSubscription } from './hooks/useSubscription';
+import SubscriptionExpiredModal from './components/SubscriptionExpiredModal';
 
 const Designers = lazy(() => import('./pages/Designers'));
 const Projects = lazy(() => import('./pages/Projects'));
@@ -113,6 +115,7 @@ const DashboardRedirectHandler = () => {
 };
 
 function App() {
+  const { subscription, loading: subscriptionLoading } = useSubscription();
   useEffect(() => {
     processQueuedNotifications();
 
