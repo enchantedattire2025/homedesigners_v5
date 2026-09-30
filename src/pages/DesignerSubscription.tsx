@@ -572,7 +572,7 @@ const DesignerSubscription: React.FC = () => {
                     </span>
                   </div>
 
-                  </div>
+                  
 
 
                   {/* FEATURES */}
