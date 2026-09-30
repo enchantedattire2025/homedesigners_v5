@@ -545,10 +545,10 @@ const [subscriptionManagementLoading, setSubscriptionManagementLoading] = useSta
 function App() {
 
   useEffect(() => {
-    processQueuedNotifications();
+    processUserNotifications();
 
     const interval = setInterval(() => {
-      processQueuedNotifications();
+      processUserNotifications();
     }, 30000);
 
     return () => clearInterval(interval);
@@ -562,5 +562,4 @@ function App() {
     </AuthProvider>
   );
 }
-
 export default App;
