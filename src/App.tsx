@@ -496,8 +496,8 @@ const AppContent: React.FC = () => {
 
         The modal itself will block the page content underneath it.
       */}
-      {showSubscriptionExpiredModal && (
-        <SubscriptionExpiredModal isOpen={true} />
+      {showSubscriptionExpiredModal && subscriptionManagementEnabled && (
+      <SubscriptionExpiredModal isOpen={true} />
       )}
 
     </div>
