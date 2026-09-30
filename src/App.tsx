@@ -7,6 +7,7 @@ import {
   useLocation
 } from 'react-router-dom';
 
+import React, { useEffect, useState, lazy, Suspense } from 'react';
 import { AuthProvider } from './hooks/AuthContext';
 import { useAuth } from './hooks/useAuth';
 import { useDesignerProfile } from './hooks/useDesignerProfile';
