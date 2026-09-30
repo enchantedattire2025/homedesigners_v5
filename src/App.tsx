@@ -168,6 +168,37 @@ const [subscriptionManagementLoading, setSubscriptionManagementLoading] = useSta
     subscription,
     loading: subscriptionLoading
   } = useSubscription();
+  useEffect(() => {
+  const fetchSubscriptionManagementSetting = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('site_settings')
+        .select('is_active')
+        .eq('setting_key', 'subscription_management_enabled')
+        .maybeSingle();
+
+      if (error) throw error;
+
+      setSubscriptionManagementEnabled(data?.is_active === true);
+    } catch (error) {
+      console.error('Error fetching subscription management setting:', error);
+
+      // If the setting cannot be read, do not block designers.
+      setSubscriptionManagementEnabled(false);
+    } finally {
+      setSubscriptionManagementLoading(false);
+    }
+  };
+
+  fetchSubscriptionManagementSetting();
+
+  // Keep the global popup in sync if Admin changes the setting.
+  const interval = window.setInterval(() => {
+    fetchSubscriptionManagementSetting();
+  }, 5000);
+
+  return () => window.clearInterval(interval);
+}, []);
 
   const {
     designer,
@@ -190,7 +221,9 @@ const [subscriptionManagementLoading, setSubscriptionManagementLoading] = useSta
    * 4. Subscription is expired
    * 5. User is not currently on the renewal page
    */
-  const showSubscriptionExpiredModal =
+ const showSubscriptionExpiredModal =
+    !subscriptionManagementLoading &&
+    subscriptionManagementEnabled &&
     !designerLoading &&
     !subscriptionLoading &&
     !!designer &&
