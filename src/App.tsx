@@ -26,6 +26,7 @@ import Home from './pages/Home';
 import { forceLogoutAll } from './utils/clearAuth';
 import { debugAuthState } from './utils/debugDesigner';
 import { useSubscription } from './hooks/useSubscription';
+import { supabase } from './lib/supabase';
 
 const Designers = lazy(() => import('./pages/Designers'));
 const Projects = lazy(() => import('./pages/Projects'));
