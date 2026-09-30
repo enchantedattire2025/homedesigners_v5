@@ -26,13 +26,21 @@ import {
   X,
   ShoppingCart,
   Mic,
-  Upload
+  Upload,
+  Sparkles
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useDesignerProfile } from '../hooks/useDesignerProfile';
 import { supabase } from '../lib/supabase';
 import VoiceItemInput, { VoiceAddedItem } from '../components/VoiceItemInput';
 import ModularVoiceInput from '../components/ModularVoiceInput';
+import QuoteTemplateSelector from '../components/QuoteTemplateSelector';
+import {
+  generateQuoteItemsFromTemplate,
+  type HomeTemplate,
+  type ScopeLevel,
+  type KitchenShape,
+} from '../data/quoteTemplates';
 
 interface Customer {
   id: string;
@@ -319,6 +327,7 @@ const DesignerQuoteGenerator = () => {
   const [materialSearchQuery, setMaterialSearchQuery] = useState('');
   const [quoteType, setQuoteType] = useState<'material' | 'modular'>('material');
   const [showModularVoiceInput, setShowModularVoiceInput] = useState(false);
+  const [showTemplateSelector, setShowTemplateSelector] = useState(false);
   const isSavingRef = useRef(false);
 
   const MODULAR_PRESET_RATES = [1600, 1800, 2000, 2200];
@@ -656,7 +665,41 @@ const DesignerQuoteGenerator = () => {
     setQuoteData(prev => ({ ...prev, items: [...prev.items, newItem] }));
   };
 
-  const handleMaterialQuantityChange = (materialId: string, quantity: number) => {    setSelectedMaterials(prev => {
+  const handleApplyTemplate = (
+    template: HomeTemplate,
+    selectedRoomIds: string[],
+    tplScope: ScopeLevel,
+    kitchenShape: KitchenShape,
+  ) => {
+    const materialsForMatching = materials.map(m => ({
+      id: m.id,
+      name: m.name,
+      category: m.category,
+      unit: m.unit,
+      base_price: m.base_price,
+      discount_price: m.discount_price,
+      is_discounted: m.is_discounted,
+    }));
+
+    const templateItems = generateQuoteItemsFromTemplate(
+      template,
+      selectedRoomIds,
+      tplScope,
+      kitchenShape,
+      materialsForMatching,
+    );
+
+    setQuoteData(prev => ({
+      ...prev,
+      title: prev.title || `${template.name} Interior Quote`,
+      items: [...prev.items, ...templateItems],
+    }));
+
+    setShowTemplateSelector(false);
+  };
+
+  const handleMaterialQuantityChange = (materialId: string, quantity: number) => {
+    setSelectedMaterials(prev => {
       if (quantity <= 0) {
         const { [materialId]: removed, ...rest } = prev;
         return rest;
@@ -1198,6 +1241,24 @@ const DesignerQuoteGenerator = () => {
                   )}
                 </div>
 
+                {/* Quick Start with Template */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Quick Start</label>
+                  <button
+                    onClick={() => setShowTemplateSelector(true)}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border-2 border-dashed border-primary-300 bg-primary-50/50 hover:bg-primary-50 hover:border-primary-400 transition-all text-left group"
+                  >
+                    <div className="w-10 h-10 rounded-lg bg-primary-100 flex items-center justify-center flex-shrink-0">
+                      <Sparkles className="w-5 h-5 text-primary-600" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-sm font-semibold text-primary-700">Start with a Template</div>
+                      <div className="text-xs text-gray-500">Pre-fill items from 1BHK / 2BHK / 3BHK / 4BHK templates — all editable</div>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-primary-400 group-hover:text-primary-600 transition-colors" />
+                  </button>
+                </div>
+
                 {/* Quote Type Selector */}
                 <div className="mb-6">
                   <label className="block text-sm font-medium text-gray-700 mb-2">Quotation Type</label>
@@ -1312,8 +1373,34 @@ const DesignerQuoteGenerator = () => {
                           </tr>
                         </thead>
                         <tbody>
-                    {quoteData.items.map((item, index) => item.section === 'modular' ? null : (
-                          <tr key={index} className="border-b border-gray-100 hover:bg-gray-50/50 align-top">
+                    {(() => {
+                      const onSiteItems = quoteData.items
+                        .map((item, idx) => ({ item, idx }))
+                        .filter(({ item }) => item.section !== 'modular');
+                      let lastSection = '';
+                      return onSiteItems.map(({ item, idx: index }) => {
+                        const isRoomGroup = item.section && item.section !== 'on_site';
+                        const showGroupHeader = isRoomGroup && item.section !== lastSection;
+                        lastSection = (item.section as string) || lastSection;
+                        const groupItems = isRoomGroup
+                          ? onSiteItems.filter(({ item: i }) => i.section === item.section)
+                          : [];
+                        const groupAmount = groupItems.reduce((sum, { item: i }) => sum + (i.amount || 0), 0);
+                        return (
+                          <React.Fragment key={index}>
+                        {showGroupHeader && (
+                          <tr className="bg-primary-50/70 border-b border-primary-100">
+                            <td colSpan={16} className="px-4 py-2.5">
+                              <div className="flex items-center justify-between">
+                                <span className="font-semibold text-primary-700 text-sm">
+                                  {item.section} ({groupItems.length} item{groupItems.length !== 1 ? 's' : ''})
+                                </span>
+                                <span className="text-sm text-gray-600 font-medium">{formatCurrency(groupAmount)}</span>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                          <tr className="border-b border-gray-100 hover:bg-gray-50/50 align-top">
                             <td className="px-3 py-2.5 text-gray-500 font-medium whitespace-nowrap">{index + 1}</td>
                             <td className="px-3 py-2.5">
                               <select
@@ -1556,9 +1643,16 @@ const DesignerQuoteGenerator = () => {
                                 value={item.unit_price}
                                 onChange={(e) => handleItemChange(index, 'unit_price', e.target.value === '' ? '' : parseFloat(e.target.value) || 0)}
                                 min="0" step="0.01"
-                                className="w-24 border border-gray-300 rounded-lg px-2 py-1.5 focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm text-right"
+                                className={`w-24 border rounded-lg px-2 py-1.5 focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm text-right ${
+                                  !item.unit_price || item.unit_price === 0
+                                    ? 'border-amber-300 bg-amber-50'
+                                    : 'border-gray-300'
+                                }`}
                                 required
                               />
+                              {!item.unit_price || item.unit_price === 0 ? (
+                                <p className="text-[10px] text-amber-600 mt-0.5 whitespace-nowrap">Set price</p>
+                              ) : null}
                             </td>
                             <td className="px-3 py-2.5">
                               <input
@@ -1583,7 +1677,10 @@ const DesignerQuoteGenerator = () => {
                               </button>
                             </td>
                           </tr>
-                    ))}
+                        </React.Fragment>
+                        );
+                      });
+                    })()}
                         </tbody>
                       </table>
                     </div>
@@ -1921,33 +2018,51 @@ const DesignerQuoteGenerator = () => {
                         <tbody>
                           {quoteData.items.filter(i => i.section !== 'modular').length > 0 && (
                             <>
-                              <tr className="bg-primary-50">
-                                <td colSpan={12} className="py-2 px-4 font-semibold text-primary-700 text-sm">On-Site Work</td>
-                              </tr>
-                              {quoteData.items.filter(i => i.section !== 'modular').map((item, index) => (
-                                <tr key={`os-${index}`} className="border-b border-gray-100">
-                                  <td className="py-3 px-4 font-medium text-secondary-800">{item.name}</td>
-                                  <td className="py-3 px-4 text-gray-600">{item.description || '-'}</td>
-                                  <td className="py-3 px-4">
-                                    {item.image_url ? (
-                                    <div className="w-[120px] h-[120px] border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
-                                      <img src={item.image_url} alt="Item" className="w-full h-full object-contain" />
-                                    </div>
-                                  ) : (
-                                    <span className="text-gray-400 text-xs">No image</span>
-                                  )}
-                                  </td>
-                                  <td className="py-3 px-4 text-right">{item.number_of_units}</td>
-                                  <td className="py-3 px-4 text-right">{item.quantity}</td>
-                                  <td className="py-3 px-4 text-right">{item.unit}</td>
-                                  <td className="py-3 px-4 text-right">{item.width ? item.width : '-'}</td>
-                                  <td className="py-3 px-4 text-right">{item.height ? item.height : '-'}</td>
-                                  <td className="py-3 px-4 text-right">{item.depth ? item.depth : '-'}</td>
-                                  <td className="py-3 px-4 text-right">{formatCurrency(item.unit_price)}</td>
-                                  <td className="py-3 px-4 text-right">{item.discount_percent}%</td>
-                                  <td className="py-3 px-4 text-right font-medium">{formatCurrency(item.amount)}</td>
-                                </tr>
-                              ))}
+                              {(() => {
+                                const onSiteItems = quoteData.items.filter(i => i.section !== 'modular');
+                                const groups: { label: string; items: typeof onSiteItems }[] = [];
+                                const sectionMap = new Map<string, typeof onSiteItems>();
+                                onSiteItems.forEach(item => {
+                                  const key = (item.section as string) || 'On-Site Work';
+                                  if (!sectionMap.has(key)) sectionMap.set(key, []);
+                                  sectionMap.get(key)!.push(item);
+                                });
+                                sectionMap.forEach((items, label) => groups.push({ label, items }));
+
+                                return groups.map(group => (
+                                  <React.Fragment key={group.label}>
+                                    <tr className="bg-primary-50">
+                                      <td colSpan={12} className="py-2 px-4 font-semibold text-primary-700 text-sm">
+                                        {group.label} ({group.items.length} item{group.items.length !== 1 ? 's' : ''})
+                                      </td>
+                                    </tr>
+                                    {group.items.map((item, index) => (
+                                      <tr key={`${group.label}-${index}`} className="border-b border-gray-100">
+                                        <td className="py-3 px-4 font-medium text-secondary-800">{item.name}</td>
+                                        <td className="py-3 px-4 text-gray-600">{item.description || '-'}</td>
+                                        <td className="py-3 px-4">
+                                          {item.image_url ? (
+                                          <div className="w-[120px] h-[120px] border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
+                                            <img src={item.image_url} alt="Item" className="w-full h-full object-contain" />
+                                          </div>
+                                        ) : (
+                                          <span className="text-gray-400 text-xs">No image</span>
+                                        )}
+                                        </td>
+                                        <td className="py-3 px-4 text-right">{item.number_of_units}</td>
+                                        <td className="py-3 px-4 text-right">{item.quantity}</td>
+                                        <td className="py-3 px-4 text-right">{item.unit}</td>
+                                        <td className="py-3 px-4 text-right">{item.width ? item.width : '-'}</td>
+                                        <td className="py-3 px-4 text-right">{item.height ? item.height : '-'}</td>
+                                        <td className="py-3 px-4 text-right">{item.depth ? item.depth : '-'}</td>
+                                        <td className="py-3 px-4 text-right">{formatCurrency(item.unit_price)}</td>
+                                        <td className="py-3 px-4 text-right">{item.discount_percent}%</td>
+                                        <td className="py-3 px-4 text-right font-medium">{formatCurrency(item.amount)}</td>
+                                      </tr>
+                                    ))}
+                                  </React.Fragment>
+                                ));
+                              })()}
                             </>
                           )}
                           {quoteData.items.filter(i => i.section === 'modular').length > 0 && (
@@ -2341,6 +2456,12 @@ const DesignerQuoteGenerator = () => {
           </div>
         </div>
       )}
+
+      <QuoteTemplateSelector
+        isOpen={showTemplateSelector}
+        onClose={() => setShowTemplateSelector(false)}
+        onApply={handleApplyTemplate}
+      />
     </div>
   );
 };
