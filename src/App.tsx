@@ -543,17 +543,6 @@ const [subscriptionManagementLoading, setSubscriptionManagementLoading] = useSta
 
 
 function App() {
-
-  useEffect(() => {
-    processUserNotifications();
-
-    const interval = setInterval(() => {
-      processUserNotifications();
-    }, 30000);
-
-    return () => clearInterval(interval);
-  }, []);
-
   return (
     <AuthProvider>
       <Router>
