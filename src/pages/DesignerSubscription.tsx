@@ -560,16 +560,26 @@ const DesignerSubscription: React.FC = () => {
 
 
                   {/* DESCRIPTION */}
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-gray-400 line-through text-sm">
-                      ₹1999
-                    </span>
-                    <span className="text-2xl font-bold">
-                      ₹1
-                    </span>
-                    <span className="text-sm text-gray-500">
-                      /quarter
-                    </span>
+                  <div className="mt-4 mb-5">
+                    <div className="flex items-end gap-2">
+                      <span className="text-lg text-gray-400 line-through mb-1">
+                        ₹1999
+                      </span>
+                  
+                      <span className="text-4xl font-extrabold text-gray-900">
+                        ₹1
+                      </span>
+                  
+                      <span className="text-sm text-gray-500 mb-1">
+                        / quarter
+                      </span>
+                    </div>
+                  
+                    <div className="mt-2 inline-flex items-center rounded-full bg-green-50 px-3 py-1">
+                      <span className="text-xs font-semibold text-green-700">
+                        Limited-time introductory offer
+                      </span>
+                    </div>
                   </div>
 
                   
