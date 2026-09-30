@@ -560,21 +560,17 @@ const DesignerSubscription: React.FC = () => {
 
 
                   {/* DESCRIPTION */}
-                  <p className="text-gray-600 mb-4">
-                    For established designers with growing business
-                  </p>
-
-
-                  {/* PRICE */}
-                  <div className="mb-6">
-
-                    <span className="text-4xl font-bold text-gray-900">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-gray-400 line-through text-sm">
+                      ₹1999
+                    </span>
+                    <span className="text-2xl font-bold">
                       ₹1
                     </span>
-
-                    <span className="text-gray-600">
+                    <span className="text-sm text-gray-500">
                       /quarter
                     </span>
+                  </div>
 
                   </div>
 
