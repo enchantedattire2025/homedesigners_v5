@@ -1,4 +1,5 @@
-import React, { useEffect, lazy, Suspense } from 'react';
+import React, { useEffect, useState, lazy, Suspense } from 'react';
+
 import {
   BrowserRouter as Router,
   Routes,
@@ -7,12 +8,11 @@ import {
   useLocation
 } from 'react-router-dom';
 
-import React, { useEffect, useState, lazy, Suspense } from 'react';
 import { AuthProvider } from './hooks/AuthContext';
 import { useAuth } from './hooks/useAuth';
 import { useDesignerProfile } from './hooks/useDesignerProfile';
 import { detectUserTypeAndRedirect } from './utils/userTypeDetection';
-import { processQueuedNotifications } from './utils/whatsappNotification';
+import { processUserNotifications } from './utils/whatsappNotification';
 
 import Header from './components/Header';
 import Footer from './components/Footer';
