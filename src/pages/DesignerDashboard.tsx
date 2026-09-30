@@ -83,6 +83,10 @@ interface RecentActivity {
   projectName?: string;
 }
 
+interface DesignerSubscriptionStatus {
+  status: string | null;
+}
+
 interface AnalyticsModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -455,7 +459,13 @@ const DesignerDashboard = () => {
   const [showAnalyticsModal, setShowAnalyticsModal] = useState(false);
   const [analyticsType, setAnalyticsType] = useState<'projects' | 'active' | 'rating' | 'revenue'>('projects');
   const [loadTimeout, setLoadTimeout] = useState(false);
+
+  // Master switch controlled by Admin.
+  // When false, subscription features and subscription enforcement are disabled.
   const [subscriptionManagementEnabled, setSubscriptionManagementEnabled] = useState(false);
+  const [subscriptionManagementLoading, setSubscriptionManagementLoading] = useState(true);
+  const [designerSubscription, setDesignerSubscription] = useState<DesignerSubscriptionStatus | null>(null);
+  const [showSubscriptionExpiredModal, setShowSubscriptionExpiredModal] = useState(false);
 
   // Colors for charts
   const COLORS = ['#E07A5F', '#3D5A80', '#F2CC8F', '#81B29A', '#F4A261'];
@@ -492,23 +502,73 @@ const DesignerDashboard = () => {
   }, [designer, designerLoading, loadTimeout]);
 
   useEffect(() => {
-    fetchSubscriptionManagementSetting();
-  }, []);
+    fetchSubscriptionManagementState();
+  }, [designer?.id]);
 
-  const fetchSubscriptionManagementSetting = async () => {
+  // Re-check the Admin master switch periodically so that turning it OFF
+  // immediately disables subscription enforcement for designers.
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      fetchSubscriptionManagementState();
+    }, 5000);
+
+    return () => window.clearInterval(interval);
+  }, [designer?.id]);
+
+  const fetchSubscriptionManagementState = async () => {
     try {
-      const { data, error } = await supabase
+      setSubscriptionManagementLoading(true);
+
+      // STEP 1: Read the Admin master switch.
+      const { data: settingData, error: settingError } = await supabase
         .from('site_settings')
         .select('is_active')
         .eq('setting_key', 'subscription_management_enabled')
         .maybeSingle();
 
-      if (error) throw error;
+      if (settingError) throw settingError;
 
-      setSubscriptionManagementEnabled(data?.is_active || false);
+      const enabled = settingData?.is_active === true;
+      setSubscriptionManagementEnabled(enabled);
+
+      // IMPORTANT:
+      // If Admin has disabled subscription management, do not check or enforce
+      // the designer subscription at all. The designer remains a free user.
+      if (!enabled) {
+        setDesignerSubscription(null);
+        setShowSubscriptionExpiredModal(false);
+        return;
+      }
+
+      // STEP 2: Only when Admin has enabled subscriptions, check this designer.
+      if (!designer?.id) {
+        setDesignerSubscription(null);
+        setShowSubscriptionExpiredModal(false);
+        return;
+      }
+
+      const { data: subscriptionData, error: subscriptionError } = await supabase
+        .from('designer_subscriptions')
+        .select('status')
+        .eq('designer_id', designer.id)
+        .maybeSingle();
+
+      if (subscriptionError) throw subscriptionError;
+
+      const status = subscriptionData?.status || null;
+      setDesignerSubscription({ status });
+
+      // STEP 3: Enforce expiration only while the Admin switch is ON.
+      setShowSubscriptionExpiredModal(enabled && status === 'expired');
     } catch (error) {
-      console.error('Error fetching subscription management setting:', error);
+      console.error('Error fetching subscription management state:', error);
+
+      // Fail-safe: if the setting cannot be read, do NOT block designers.
       setSubscriptionManagementEnabled(false);
+      setDesignerSubscription(null);
+      setShowSubscriptionExpiredModal(false);
+    } finally {
+      setSubscriptionManagementLoading(false);
     }
   };
 
@@ -872,7 +932,7 @@ const DesignerDashboard = () => {
               </div>
             </div>
             <div className="flex space-x-4">
-              {subscriptionManagementEnabled && (
+              {subscriptionManagementEnabled && !subscriptionManagementLoading && (
                 <button
                   onClick={() => navigate('/designer-subscription')}
                   className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
@@ -898,7 +958,8 @@ const DesignerDashboard = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {subscriptionManagementEnabled && (
+        {/* Subscription features are completely controlled by the Admin master switch. */}
+        {!subscriptionManagementLoading && subscriptionManagementEnabled && (
           <SubscriptionBanner />
         )}
 
@@ -1144,6 +1205,48 @@ const DesignerDashboard = () => {
           </div>
         </div>
         
+        {/* 
+          Subscription Expired Modal
+          IMPORTANT:
+          This can only appear when BOTH conditions are true:
+          1. Admin enabled Subscription Management.
+          2. This designer's subscription status is expired.
+        */}
+        {subscriptionManagementEnabled &&
+          designerSubscription?.status === 'expired' &&
+          showSubscriptionExpiredModal && (
+            <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
+              <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 text-center">
+                <div className="mx-auto mb-5 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                  <AlertCircle className="w-6 h-6 text-red-600" />
+                </div>
+
+                <h2 className="text-2xl font-bold text-secondary-800 mb-2">
+                  Subscription Expired
+                </h2>
+
+                <p className="text-gray-600 mb-6">
+                  Your subscription has expired. Please renew your subscription
+                  to continue using the available features and tools.
+                </p>
+
+                <button
+                  onClick={() => navigate('/designer-subscription')}
+                  className="w-full bg-red-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors"
+                >
+                  Renew Now
+                </button>
+
+                <button
+                  onClick={() => setShowSubscriptionExpiredModal(false)}
+                  className="mt-3 text-sm text-gray-500 hover:text-gray-700"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          )}
+
         {/* Analytics Modal */}
         <AnalyticsModal 
           isOpen={showAnalyticsModal}
