@@ -161,6 +161,8 @@ const DashboardRedirectHandler = () => {
  */
 const AppContent: React.FC = () => {
   const location = useLocation();
+  const [subscriptionManagementEnabled, setSubscriptionManagementEnabled] = useState(false);
+const [subscriptionManagementLoading, setSubscriptionManagementLoading] = useState(true);
 
   const {
     subscription,
