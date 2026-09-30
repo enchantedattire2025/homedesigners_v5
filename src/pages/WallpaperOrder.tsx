@@ -576,7 +576,7 @@ export default function WallpaperOrder() {
                   <input
                     type="text"
                     required
-                    maxLength={15}
+                    maxLength={50}
                     value={formData.customer_name}
                     onChange={(e) => {
                     const value = e.target.value;
