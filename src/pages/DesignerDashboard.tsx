@@ -874,7 +874,7 @@ const DesignerDashboard = () => {
             <div className="flex space-x-4">
               {subscriptionManagementEnabled && (
                 <button
-                  onClick={() => navigate('/designer-subscription')}
+                  onClick={() =>  navigate('/your-existing-subscription-route')}
                   className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   Manage Subscription
