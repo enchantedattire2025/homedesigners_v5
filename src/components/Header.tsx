@@ -21,6 +21,22 @@ const Header = () => {
   const { user, signOut, isAdmin } = useAuth();
   const { designer, isDesigner, loading: designerLoading } = useDesignerProfile();
   const { hasCustomerProject, loading: registrationLoading } = useUserRegistrationStatus();
+  useEffect(() => {
+      const handleClickOutside = (event: MouseEvent) => {
+        if (
+          userMenuRef.current &&
+          !userMenuRef.current.contains(event.target as Node)
+        ) {
+          setShowUserMenu(false);
+        }
+      };
+    
+      document.addEventListener("mousedown", handleClickOutside);
+    
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }, []);
 
   const navigation = [
     { name: 'Home', href: '/', icon: HomeIcon },
