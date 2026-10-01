@@ -347,19 +347,19 @@ const DesignerQuoteGenerator = () => {
     items: []
   });
 
-  useEffect(() => {
-    if (!designerLoading && designer && projectId) {
-      fetchProjectDetails();
-      fetchMaterials();
-    }
-  }, [designer, designerLoading, projectId]);
+useEffect(() => {
+  if (!designerLoading && designer && projectId) {
+    fetchCustomer();
+    fetchMaterials();
+  }
+}, [designer, designerLoading, projectId]);
 
   useEffect(() => {
     // Recalculate totals whenever items change
     calculateTotals();
   }, [quoteData.items, quoteData.tax_rate, quoteData.discount_amount]);
 
-  const fetchCustomer = async () => {
+const fetchCustomer = async () => {
   try {
     setCustomerLoading(true);
 
@@ -385,14 +385,19 @@ const DesignerQuoteGenerator = () => {
 
     setCustomer(data);
 
-    setQuoteData(prev => ({
-      ...prev,
-      title: `Quote for ${data.project_name || ''}`
-    }));
+    // Keep your existing quote-data code here
+    // setQuoteData(...);
 
   } catch (error) {
-    console.error('Error loading project:', error);
-    setError(error instanceof Error ? error.message : 'Failed to load project');
+    console.error('Error fetching customer/project:', error);
+
+    setError(
+      error instanceof Error
+        ? error.message
+        : 'Failed to load project'
+    );
+
+    setCustomer(null);
   } finally {
     setCustomerLoading(false);
   }
