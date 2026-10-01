@@ -199,7 +199,7 @@ const Header = () => {
               {user ? (
                 <>
                   <NotificationBell />
-                  <div className="relative">
+                  <div ref={userMenuRef} className="relative">
                     <button
                       onClick={() => setShowUserMenu(!showUserMenu)}
                       className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 transition-colors"
