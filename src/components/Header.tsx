@@ -14,6 +14,7 @@ const Header = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
   const [editProfileLoading, setEditProfileLoading] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
