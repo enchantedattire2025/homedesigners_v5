@@ -255,6 +255,7 @@ const DesignerQuoteGenerator = () => {
   const { designer, isDesigner, loading: designerLoading } = useDesignerProfile();
   
   const [customer, setCustomer] = useState<Customer | null>(null);
+  const [customerLoading, setCustomerLoading] = useState(true);
   const [materials, setMaterials] = useState<Material[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -358,57 +359,44 @@ const DesignerQuoteGenerator = () => {
     calculateTotals();
   }, [quoteData.items, quoteData.tax_rate, quoteData.discount_amount]);
 
-  const fetchProjectDetails = async () => {
-    if (!projectId || !designer) return;
+  const fetchCustomer = async () => {
+  try {
+    setCustomerLoading(true);
 
-    try {
-      setLoading(true);
-      setError(null);
+    const { data, error } = await supabase
+      .from('customers')
+      .select('*')
+      .eq('id', projectId)
+      .single();
 
-      // First, check if this designer has access to this project
-      // Either through project_shares or assigned_designer_id
-      const { data: shareCheck } = await supabase
-        .from('project_shares')
-        .select('*')
-        .eq('project_id', projectId)
-        .ilike('designer_email', designer.email)
-        .maybeSingle();
+    if (error) throw error;
 
-      const { data, error } = await supabase
-        .from('customers')
-        .select('*')
-        .eq('id', projectId)
-        .single();
-
-      if (error) throw error;
-
-      if (!data) {
-        throw new Error('Project not found');
-      }
-
-      // Check if designer has access via assignment or share
-      const hasAccess = data.assigned_designer_id === designer.id || shareCheck !== null;
-
-      if (!hasAccess) {
-        throw new Error('You do not have access to this project');
-      }
-      
-      setCustomer(data);
-      
-      // Set quote title based on project name
-      setQuoteData(prev => ({
-        ...prev,
-        title: `Quote for ${data.project_name}`,
-        description: `Interior design services for ${data.property_type} in ${data.location}`
-      }));
-    } catch (error: any) {
-      console.error('Error fetching project details:', error);
-      setError(error.message || 'Failed to load project details');
-    } finally {
-      setLoading(false);
+    if (!data) {
+      throw new Error('Project not found');
     }
-  };
 
+    const hasAccess =
+      data.assigned_designer_id === designer.id ||
+      shareCheck !== null;
+
+    if (!hasAccess) {
+      throw new Error('You do not have access to this project');
+    }
+
+    setCustomer(data);
+
+    setQuoteData(prev => ({
+      ...prev,
+      title: `Quote for ${data.project_name || ''}`
+    }));
+
+  } catch (error) {
+    console.error('Error loading project:', error);
+    setError(error instanceof Error ? error.message : 'Failed to load project');
+  } finally {
+    setCustomerLoading(false);
+  }
+};
   const fetchMaterials = async () => {
     if (!designer) return;
 
@@ -964,25 +952,42 @@ const DesignerQuoteGenerator = () => {
     );
   }
 
-  if (!customer) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-secondary-800 mb-4">Project Not Found</h2>
-          <p className="text-gray-600 mb-4">
-            {error || "The project you're looking for doesn't exist or you don't have access to it."}
-          </p>
-          <button
-            onClick={() => navigate('/customer-projects')}
-            className="btn-primary"
-          >
-            Back to Projects
-          </button>
-        </div>
+  if (customerLoading) {
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto mb-4"></div>
+        <p className="text-gray-600">Loading project...</p>
       </div>
-    );
-  }
+    </div>
+  );
+}
+
+if (!customer) {
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="text-center">
+        <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+
+        <h2 className="text-2xl font-bold text-secondary-800 mb-4">
+          Project Not Found
+        </h2>
+
+        <p className="text-gray-600 mb-4">
+          {error ||
+            "The project you're looking for doesn't exist or you don't have access to it."}
+        </p>
+
+        <button
+          onClick={() => navigate('/customer-projects')}
+          className="btn-primary"
+        >
+          Back to Projects
+        </button>
+      </div>
+    </div>
+  );
+}
 
   return (
     <div className="min-h-screen bg-gray-50">
