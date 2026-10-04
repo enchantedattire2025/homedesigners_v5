@@ -223,6 +223,38 @@ const QuoteViewer = () => {
             margin: 8mm;
           }
 
+          .quote-items-wrapper {
+            width: 100%;
+            max-width: 100%;
+            overflow: hidden;
+          }
+
+          .print-quote-table {
+            width: 100%;
+            max-width: 100%;
+            table-layout: fixed;
+            border-collapse: collapse;
+          }
+
+          .print-quote-table th,
+          .print-quote-table td {
+            min-width: 0;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+            white-space: normal;
+            vertical-align: top;
+          }
+
+          .print-quote-table th {
+            font-size: 10px;
+            line-height: 1.15;
+          }
+
+          .print-quote-table td {
+            font-size: 10px;
+            line-height: 1.25;
+          }
+
           @media print {
             html,
             body {
@@ -267,7 +299,7 @@ const QuoteViewer = () => {
               min-width: 0 !important;
               table-layout: fixed !important;
               border-collapse: collapse !important;
-              font-size: 8px !important;
+              font-size: 7px !important;
             }
 
             #print-area .print-quote-table th,
@@ -424,13 +456,16 @@ const QuoteViewer = () => {
 
           <div className="mb-8">
             <h4 className="font-semibold text-secondary-800 mb-4 text-lg">Quote Items</h4>
-            <div className="overflow-x-auto quote-items-wrapper">
-              <table className="w-full border border-gray-200 print-quote-table">
+            <div className="quote-items-wrapper w-full overflow-hidden">
+              <table
+                className="w-full border border-gray-200 print-quote-table"
+                style={{ tableLayout: 'fixed', width: '100%' }}
+              >
                 <colgroup>
                   <col style={{ width: '8%' }} />
-                  <col style={{ width: '15%' }} />
-                  <col style={{ width: '7%' }} />
+                  <col style={{ width: '13%' }} />
                   <col style={{ width: '5%' }} />
+                  <col style={{ width: '6%' }} />
                   <col style={{ width: '9%' }} />
                   <col style={{ width: '6%' }} />
                   <col style={{ width: '7%' }} />
@@ -438,13 +473,13 @@ const QuoteViewer = () => {
                   <col style={{ width: '7%' }} />
                   <col style={{ width: '11%' }} />
                   <col style={{ width: '7%' }} />
-                  <col style={{ width: '11%' }} />
+                  <col style={{ width: '14%' }} />
                 </colgroup>
                 <thead className="bg-gray-100">
                   <tr>
                     <th className="text-left py-3 px-4 font-semibold text-secondary-800 border-b">Item</th>
                     <th className="text-left py-3 px-4 font-semibold text-secondary-800 border-b">Description</th>
-                    <th className="text-left py-3 px-4 font-semibold text-secondary-800 border-b">Image</th>
+
                     <th className="text-right py-3 px-4 font-semibold text-secondary-800 border-b">Units</th>
                     <th className="text-right py-3 px-4 font-semibold text-secondary-800 border-b">Total Measurement</th>
                     <th className="text-right py-3 px-4 font-semibold text-secondary-800 border-b">Unit</th>
@@ -460,15 +495,13 @@ const QuoteViewer = () => {
                   {quote.items.filter(i => i.section !== 'modular').length > 0 && (
                     <>
                       <tr className="bg-primary-50">
-                        <td colSpan={12} className="py-2 px-4 font-semibold text-primary-700 text-sm border-b">On-Site Work</td>
+                        <td colSpan={11} className="py-2 px-4 font-semibold text-primary-700 text-sm border-b">On-Site Work</td>
                       </tr>
                       {quote.items.filter(i => i.section !== 'modular').map((item) => (
                         <tr key={item.id} className="border-b border-gray-100">
                           <td className="py-3 px-4 font-medium text-gray-800">{item.name}</td>
                           <td className="py-3 px-4 text-gray-600 text-sm">{item.description || '-'}</td>
-                          <td className="py-3 px-4">
-                            <ItemThumbnail src={getMaterialImage(item)} />
-                          </td>
+
                           <td className="py-3 px-4 text-right text-gray-800">{item.number_of_units || 1}</td>
                           <td className="py-3 px-4 text-right text-gray-800">{item.quantity}</td>
                           <td className="py-3 px-4 text-right text-gray-600">{item.unit}</td>
@@ -485,15 +518,13 @@ const QuoteViewer = () => {
                   {quote.items.filter(i => i.section === 'modular').length > 0 && (
                     <>
                       <tr className="bg-primary-50">
-                        <td colSpan={12} className="py-2 px-4 font-semibold text-primary-700 text-sm border-b">Modular Work</td>
+                        <td colSpan={11} className="py-2 px-4 font-semibold text-primary-700 text-sm border-b">Modular Work</td>
                       </tr>
                       {quote.items.filter(i => i.section === 'modular').map((item) => (
                         <tr key={item.id} className="border-b border-gray-100">
                           <td className="py-3 px-4 font-medium text-gray-800">{item.name}</td>
                           <td className="py-3 px-4 text-gray-600 text-sm">{item.description || '-'}</td>
-                          <td className="py-3 px-4">
-                            <ItemThumbnail src={getMaterialImage(item)} />
-                          </td>
+
                           <td className="py-3 px-4 text-right text-gray-800">{item.number_of_units || 1}</td>
                           <td className="py-3 px-4 text-right text-gray-800">{item.area_sqft ?? 0} sq ft</td>
                           <td className="py-3 px-4 text-right text-gray-600">sq.ft</td>
