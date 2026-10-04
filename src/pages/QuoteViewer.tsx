@@ -207,13 +207,13 @@ const QuoteViewer = () => {
         {`
           @page {
             size: A4 landscape;
-            margin: 8mm;
+            margin: 5mm;
           }
 
           .quote-items-wrapper {
             width: 100%;
             max-width: 100%;
-            overflow: hidden;
+            overflow-x: auto;
           }
 
           .print-quote-table {
@@ -267,7 +267,7 @@ const QuoteViewer = () => {
               width: 100% !important;
               max-width: none !important;
               margin: 0 !important;
-              padding: 6mm !important;
+              padding: 4mm !important;
               box-sizing: border-box !important;
               background: white !important;
               box-shadow: none !important;
@@ -286,29 +286,30 @@ const QuoteViewer = () => {
               min-width: 0 !important;
               table-layout: fixed !important;
               border-collapse: collapse !important;
-              font-size: 7px !important;
+              font-size: 8px !important;
             }
 
             #print-area .print-quote-table th,
             #print-area .print-quote-table td {
               padding: 3px 2px !important;
-              line-height: 1.25 !important;
+              line-height: 1.3 !important;
               white-space: normal !important;
+              overflow: visible !important;
               overflow-wrap: anywhere !important;
               word-break: break-word !important;
               vertical-align: top !important;
             }
 
             #print-area .print-quote-table th {
-              font-size: 7.5px !important;
-              line-height: 1.15 !important;
+              font-size: 8.5px !important;
+              line-height: 1.2 !important;
             }
 
             #print-area .print-quote-table .print-item-image {
-              width: 34px !important;
-              height: 34px !important;
-              max-width: 34px !important;
-              max-height: 34px !important;
+              width: 30px !important;
+              height: 30px !important;
+              max-width: 30px !important;
+              max-height: 30px !important;
               object-fit: contain !important;
             }
 
@@ -319,6 +320,13 @@ const QuoteViewer = () => {
             #print-area .print-quote-table tr {
               break-inside: avoid;
               page-break-inside: avoid;
+            }
+
+            #print-area .bg-gray-50,
+            #print-area .bg-primary-50 {
+              background-color: #f9fafb !important;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
             }
 
             .no-print {
@@ -443,7 +451,7 @@ const QuoteViewer = () => {
 
           <div className="mb-8">
             <h4 className="font-semibold text-secondary-800 mb-4 text-lg">Quote Items</h4>
-            <div className="quote-items-wrapper w-full overflow-hidden">
+            <div className="quote-items-wrapper w-full overflow-x-auto">
               <table
                 className="w-full border border-gray-200 print-quote-table"
                 style={{ tableLayout: 'fixed', width: '100%' }}
