@@ -1297,7 +1297,7 @@ if (!customer) {
                     >
                       <Layers className="w-5 h-5" />
                       <div className="text-left">
-                        <div className="text-sm font-semibold">Modular Quote</div>
+                        <div className="text-sm font-semibold">Modular Quote1</div>
                         <div className="text-xs text-gray-500">W × H × D × Rate</div>
                       </div>
                     </button>
