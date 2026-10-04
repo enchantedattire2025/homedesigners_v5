@@ -479,7 +479,7 @@ const QuoteViewer = () => {
                   <tr>
                     <th className="text-left py-3 px-4 font-semibold text-secondary-800 border-b">Item</th>
                     <th className="text-left py-3 px-4 font-semibold text-secondary-800 border-b">Description</th>
-
+                    <th className="text-left py-3 px-4 font-semibold text-secondary-800 border-b">Image</th>
                     <th className="text-right py-3 px-4 font-semibold text-secondary-800 border-b">Units</th>
                     <th className="text-right py-3 px-4 font-semibold text-secondary-800 border-b">Total Measurement</th>
                     <th className="text-right py-3 px-4 font-semibold text-secondary-800 border-b">Unit</th>
@@ -495,13 +495,15 @@ const QuoteViewer = () => {
                   {quote.items.filter(i => i.section !== 'modular').length > 0 && (
                     <>
                       <tr className="bg-primary-50">
-                        <td colSpan={11} className="py-2 px-4 font-semibold text-primary-700 text-sm border-b">On-Site Work</td>
+                        <td colSpan={12} className="py-2 px-4 font-semibold text-primary-700 text-sm border-b">On-Site Work</td>
                       </tr>
                       {quote.items.filter(i => i.section !== 'modular').map((item) => (
                         <tr key={item.id} className="border-b border-gray-100">
                           <td className="py-3 px-4 font-medium text-gray-800">{item.name}</td>
                           <td className="py-3 px-4 text-gray-600 text-sm">{item.description || '-'}</td>
-
+                          <td className="py-3 px-4">
+                            <ItemThumbnail src={getMaterialImage(item)} />
+                          </td>
                           <td className="py-3 px-4 text-right text-gray-800">{item.number_of_units || 1}</td>
                           <td className="py-3 px-4 text-right text-gray-800">{item.quantity}</td>
                           <td className="py-3 px-4 text-right text-gray-600">{item.unit}</td>
@@ -518,13 +520,15 @@ const QuoteViewer = () => {
                   {quote.items.filter(i => i.section === 'modular').length > 0 && (
                     <>
                       <tr className="bg-primary-50">
-                        <td colSpan={11} className="py-2 px-4 font-semibold text-primary-700 text-sm border-b">Modular Work</td>
+                        <td colSpan={12} className="py-2 px-4 font-semibold text-primary-700 text-sm border-b">Modular Work</td>
                       </tr>
                       {quote.items.filter(i => i.section === 'modular').map((item) => (
                         <tr key={item.id} className="border-b border-gray-100">
                           <td className="py-3 px-4 font-medium text-gray-800">{item.name}</td>
                           <td className="py-3 px-4 text-gray-600 text-sm">{item.description || '-'}</td>
-
+                          <td className="py-3 px-4">
+                            <ItemThumbnail src={getMaterialImage(item)} />
+                          </td>
                           <td className="py-3 px-4 text-right text-gray-800">{item.number_of_units || 1}</td>
                           <td className="py-3 px-4 text-right text-gray-800">{item.area_sqft ?? 0} sq ft</td>
                           <td className="py-3 px-4 text-right text-gray-600">sq.ft</td>
