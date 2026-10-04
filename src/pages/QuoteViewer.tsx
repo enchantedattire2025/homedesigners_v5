@@ -18,19 +18,6 @@ const MATERIAL_IMAGES: Record<string, string> = {
   'Wall Panels - 3D Decorative': 'https://images.pexels.com/photos/11235883/pexels-photo-11235883.jpeg?auto=compress&cs=tinysrgb&w=200&h=200',
 };
 
-const CATEGORY_IMAGES: Record<string, string> = {
-  'Accessories': 'https://images.pexels.com/photos/54086/rain-raindrops-windowpane-window-54086.png?auto=compress&cs=tinysrgb&w=200&h=200',
-  'Channels & Profiles': 'https://images.pexels.com/photos/39057160/pexels-photo-39057160.jpeg?auto=compress&cs=tinysrgb&w=200&h=200',
-  'Countertops': 'https://images.pexels.com/photos/11285437/pexels-photo-11285437.png?auto=compress&cs=tinysrgb&w=200&h=200',
-  'Fabrics & Upholstery': 'https://images.pexels.com/photos/19579420/pexels-photo-19579420.jpeg?auto=compress&cs=tinysrgb&w=200&h=200',
-  'Flooring': 'https://images.pexels.com/photos/129731/pexels-photo-129731.jpeg?auto=compress&cs=tinysrgb&w=200&h=200',
-  'Hardware': 'https://images.pexels.com/photos/5556176/pexels-photo-5556176.jpeg?auto=compress&cs=tinysrgb&w=200&h=200',
-  'Laminates & Veneers': 'https://images.pexels.com/photos/11285328/pexels-photo-11285328.png?auto=compress&cs=tinysrgb&w=200&h=200',
-  'Lighting': 'https://images.pexels.com/photos/32216281/pexels-photo-32216281.png?auto=compress&cs=tinysrgb&w=200&h=200',
-  'Paints & Finishes': 'https://images.pexels.com/photos/994164/pexels-photo-994164.jpeg?auto=compress&cs=tinysrgb&w=200&h=200',
-  'Plywood & Boards': 'https://images.pexels.com/photos/129733/pexels-photo-129733.jpeg?auto=compress&cs=tinysrgb&w=200&h=200',
-};
-
 const getMaterialImage = (item: { name: string; image_url?: string | null }): string | null => {
   if (item.image_url) return item.image_url;
   if (MATERIAL_IMAGES[item.name]) return MATERIAL_IMAGES[item.name];
