@@ -1364,24 +1364,42 @@ if (!customer) {
                       <p className="text-xs text-gray-500">Scroll horizontally to view all quote fields.</p>
                     </div>
                     <div className="overflow-x-auto overflow-y-hidden rounded-lg border border-gray-200">
-                      <table className="min-w-[2300px] w-max text-sm table-auto">
+                      <table className="min-w-[2350px] w-[2350px] text-sm table-fixed">
+                        <colgroup>
+                          <col className="w-[50px]" />
+                          <col className="w-[140px]" />
+                          <col className="w-[240px]" />
+                          <col className="w-[220px]" />
+                          <col className="w-[300px]" />
+                          <col className="w-[240px]" />
+                          <col className="w-[120px]" />
+                          <col className="w-[160px]" />
+                          <col className="w-[130px]" />
+                          <col className="w-[100px]" />
+                          <col className="w-[100px]" />
+                          <col className="w-[100px]" />
+                          <col className="w-[140px]" />
+                          <col className="w-[120px]" />
+                          <col className="w-[140px]" />
+                          <col className="w-[50px]" />
+                        </colgroup>
                         <thead className="bg-gray-50 border-b border-gray-200">
                           <tr>
-                            <th className="text-left px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap">#</th>
-                            <th className="text-left px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap min-w-[140px] w-[140px]">Item Type</th>
-                            <th className="text-left px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap min-w-[240px] w-[240px]">Material / Component</th>
-                            <th className="text-left px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap min-w-[220px] w-[220px]">Item Name *</th>
-                            <th className="text-left px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap min-w-[300px] w-[300px]">Description</th>
-                            <th className="text-left px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap min-w-[220px] w-[220px]">Image</th>
-                            <th className="text-right px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap min-w-[120px] w-[120px]">No. of Units</th>
-                            <th className="text-right px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap min-w-[160px] w-[160px]">Total Measurement</th>
-                            <th className="text-left px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap min-w-[130px] w-[130px]">Unit</th>
-                            <th className="text-right px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap">Width</th>
-                            <th className="text-right px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap">Height</th>
-                            <th className="text-right px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap">Depth</th>
-                            <th className="text-right px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap">Unit Price (₹)</th>
-                            <th className="text-right px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap">Discount (%)</th>
-                            <th className="text-right px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap">Amount</th>
+                            <th className="text-center px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap">#</th>
+                            <th className="text-center px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap min-w-[140px] w-[140px]">Item Type</th>
+                            <th className="text-center px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap min-w-[240px] w-[240px]">Material / Component</th>
+                            <th className="text-center px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap min-w-[220px] w-[220px]">Item Name *</th>
+                            <th className="text-center px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap min-w-[300px] w-[300px]">Description</th>
+                            <th className="text-center px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap min-w-[220px] w-[220px]">Image</th>
+                            <th className="text-center px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap min-w-[120px] w-[120px]">No. of Units</th>
+                            <th className="text-center px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap min-w-[160px] w-[160px]">Total Measurement</th>
+                            <th className="text-center px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap min-w-[130px] w-[130px]">Unit</th>
+                            <th className="text-center px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap">Width</th>
+                            <th className="text-center px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap">Height</th>
+                            <th className="text-center px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap">Depth</th>
+                            <th className="text-center px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap">Unit Price (₹)</th>
+                            <th className="text-center px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap">Discount (%)</th>
+                            <th className="text-center px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap">Amount</th>
                             <th className="px-3 py-2.5"></th>
                           </tr>
                         </thead>
@@ -1741,24 +1759,42 @@ if (!customer) {
                       <p className="text-xs text-gray-500">Scroll horizontally to view all modular quote fields.</p>
                     </div>
                     <div className="overflow-x-auto overflow-y-hidden rounded-lg border border-gray-200">
-                      <table className="min-w-[2400px] w-max text-sm table-auto">
+                      <table className="min-w-[2190px] w-[2190px] text-sm table-fixed">
+                        <colgroup>
+                          <col className="w-[50px]" />
+                          <col className="w-[220px]" />
+                          <col className="w-[300px]" />
+                          <col className="w-[240px]" />
+                          <col className="w-[100px]" />
+                          <col className="w-[110px]" />
+                          <col className="w-[100px]" />
+                          <col className="w-[110px]" />
+                          <col className="w-[100px]" />
+                          <col className="w-[110px]" />
+                          <col className="w-[120px]" />
+                          <col className="w-[120px]" />
+                          <col className="w-[180px]" />
+                          <col className="w-[130px]" />
+                          <col className="w-[140px]" />
+                          <col className="w-[60px]" />
+                        </colgroup>
                         <thead className="bg-gray-50 border-b border-gray-200">
                           <tr>
-                            <th className="text-left px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap">#</th>
-                            <th className="text-left px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap min-w-[220px] w-[220px]">Item Name *</th>
-                            <th className="text-left px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap min-w-[300px] w-[300px]">Description</th>
-                            <th className="text-left px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap min-w-[220px] w-[220px]">Image</th>
-                            <th className="text-right px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap">Width</th>
-                            <th className="text-left px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap min-w-[110px] w-[110px]">W Unit</th>
-                            <th className="text-right px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap">Height</th>
-                            <th className="text-left px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap min-w-[110px] w-[110px]">H Unit</th>
-                            <th className="text-right px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap">Depth</th>
-                            <th className="text-left px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap min-w-[110px] w-[110px]">D Unit</th>
-                            <th className="text-right px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap min-w-[120px] w-[120px]">No. of Units</th>
-                            <th className="text-right px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap min-w-[120px] w-[120px]">Discount %</th>
-                            <th className="text-left px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap min-w-[170px] w-[170px]">Rate / sq ft (₹)</th>
-                            <th className="text-right px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap min-w-[130px] w-[130px]">Area (sq ft)</th>
-                            <th className="text-right px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap">Amount</th>
+                            <th className="text-center px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap">#</th>
+                            <th className="text-center px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap min-w-[220px] w-[220px]">Item Name *</th>
+                            <th className="text-center px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap min-w-[300px] w-[300px]">Description</th>
+                            <th className="text-center px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap min-w-[220px] w-[220px]">Image</th>
+                            <th className="text-center px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap">Width</th>
+                            <th className="text-center px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap min-w-[110px] w-[110px]">W Unit</th>
+                            <th className="text-center px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap">Height</th>
+                            <th className="text-center px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap min-w-[110px] w-[110px]">H Unit</th>
+                            <th className="text-center px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap">Depth</th>
+                            <th className="text-center px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap min-w-[110px] w-[110px]">D Unit</th>
+                            <th className="text-center px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap min-w-[120px] w-[120px]">No. of Units</th>
+                            <th className="text-center px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap min-w-[120px] w-[120px]">Discount %</th>
+                            <th className="text-center px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap min-w-[170px] w-[170px]">Rate / sq ft (₹)</th>
+                            <th className="text-center px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap min-w-[130px] w-[130px]">Area (sq ft)</th>
+                            <th className="text-center px-3 py-2.5 font-semibold text-secondary-800 whitespace-nowrap">Amount</th>
                             <th className="px-3 py-2.5"></th>
                           </tr>
                         </thead>
@@ -1772,7 +1808,7 @@ if (!customer) {
                                 value={item.name}
                                 onChange={(e) => handleItemChange(index, 'name', e.target.value)}
                                 placeholder="e.g. Kitchen Lower Cabinets"
-                                className="w-[220px] min-w-[220px] border border-gray-300 rounded-lg px-2.5 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
+                                className="w-full min-w-0 border border-gray-300 rounded-lg px-2.5 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
                               />
                             </td>
                             <td className="px-3 py-2.5">
@@ -1781,7 +1817,7 @@ if (!customer) {
                                 value={item.description}
                                 onChange={(e) => handleItemChange(index, 'description', e.target.value)}
                                 placeholder="Optional"
-                                className="w-[300px] min-w-[300px] border border-gray-300 rounded-lg px-2.5 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
+                                className="w-full min-w-0 border border-gray-300 rounded-lg px-2.5 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
                               />
                             </td>
                             <td className="px-3 py-2.5">
@@ -1792,72 +1828,72 @@ if (!customer) {
                                 onRemove={() => handleItemImageRemove(index)}
                               />
                             </td>
-                            <td className="px-3 py-2.5">
+                            <td className="px-3 py-2.5 text-center">
                               <input
                                 type="number" min="0" step="any"
                                 value={item.width ?? ''}
                                 onChange={(e) => handleItemChange(index, 'width', e.target.value === '' ? undefined : parseFloat(e.target.value) || 0)}
                                 placeholder="e.g. 8"
-                                className="w-20 border border-gray-300 rounded-lg px-2 py-1.5 focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm text-right"
+                                className="w-[70px] mx-auto border border-gray-300 rounded-lg px-2.5 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm text-center"
                               />
                             </td>
-                            <td className="px-3 py-2.5">
+                            <td className="px-3 py-2.5 text-center">
                               <select
                                 value={item.width_unit || 'feet'}
                                 onChange={(e) => handleItemChange(index, 'width_unit', e.target.value)}
-                                className="w-full min-w-[140px] border border-gray-300 rounded-lg px-2.5 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm whitespace-nowrap"
+                                className="w-[90px] mx-auto border border-gray-300 rounded-lg px-2.5 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm whitespace-nowrap" 
                               >
                                 <option value="feet">feet</option>
                                 <option value="inch">inch</option>
                                 <option value="mm">mm</option>
                               </select>
                             </td>
-                            <td className="px-3 py-2.5">
+                            <td className="px-3 py-2.5 text-center">
                               <input
                                 type="number" min="0" step="any"
                                 value={item.height ?? ''}
                                 onChange={(e) => handleItemChange(index, 'height', e.target.value === '' ? undefined : parseFloat(e.target.value) || 0)}
                                 placeholder="e.g. 26"
-                                className="w-20 border border-gray-300 rounded-lg px-2 py-1.5 focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm text-right"
+                                className="w-[70px] mx-auto border border-gray-300 rounded-lg px-2.5 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm text-center"
                               />
                             </td>
-                            <td className="px-3 py-2.5">
+                            <td className="px-3 py-2.5 text-center">
                               <select
                                 value={item.height_unit || 'feet'}
                                 onChange={(e) => handleItemChange(index, 'height_unit', e.target.value)}
-                                className="w-[110px] min-w-[110px] border border-gray-300 rounded-lg px-2.5 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm whitespace-nowrap"
+                                className="w-[90px] mx-auto border border-gray-300 rounded-lg px-2.5 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm whitespace-nowrap"
                               >
                                 <option value="feet">feet</option>
                                 <option value="inch">inch</option>
                                 <option value="mm">mm</option>
                               </select>
                             </td>
-                            <td className="px-3 py-2.5">
+                            <td className="px-3 py-2.5 text-center">
                               <input
                                 type="number" min="0" step="any"
                                 value={item.depth ?? ''}
                                 onChange={(e) => handleItemChange(index, 'depth', e.target.value === '' ? undefined : parseFloat(e.target.value) || 0)}
                                 placeholder="opt"
-                                className="w-20 border border-gray-300 rounded-lg px-2 py-1.5 focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm text-right"
+                                className="w-[70px] mx-auto border border-gray-300 rounded-lg px-2.5 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm text-center"
                               />
                             </td>
-                            <td className="px-3 py-2.5">
+                            <td className="px-3 py-2.5 text-center">
                               <select
                                 value={item.depth_unit || 'feet'}
                                 onChange={(e) => handleItemChange(index, 'depth_unit', e.target.value)}
-                                className="w-[110px] min-w-[110px] border border-gray-300 rounded-lg px-2.5 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm whitespace-nowrap"
+                                className="w-[90px] mx-auto border border-gray-300 rounded-lg px-2.5 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm whitespace-nowrap"
                               >
                                 <option value="feet">feet</option>
                                 <option value="inch">inch</option>
                                 <option value="mm">mm</option>
                               </select>
                             </td>
-                            <td className="px-3 py-2.5">
+                            <td className="px-3 py-2.5 text-center">
                               <input
                                 type="number" min="1" step="1"
                                 value={item.number_of_units}
                                 onChange={(e) => handleItemChange(index, 'number_of_units', parseFloat(e.target.value) || 1)}
-                                className="w-20 border border-gray-300 rounded-lg px-2 py-1.5 focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm text-right"
+                                className="w-full min-w-0 border border-gray-300 rounded-lg px-2.5 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm text-right"
                               />
                             </td>
                             <td className="px-3 py-2.5">
@@ -1865,7 +1901,7 @@ if (!customer) {
                                 type="number" min="0" max="100" step="0.1"
                                 value={item.discount_percent}
                                 onChange={(e) => handleItemChange(index, 'discount_percent', parseFloat(e.target.value) || 0)}
-                                className="w-20 border border-gray-300 rounded-lg px-2 py-1.5 focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm text-right"
+                                className="w-full min-w-0 border border-gray-300 rounded-lg px-2.5 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm text-right"
                               />
                             </td>
                             <td className="px-3 py-2.5">
@@ -1899,7 +1935,7 @@ if (!customer) {
                                     handleItemChange(index, 'unit_price', rate);
                                   }}
                                   placeholder="custom"
-                                  className="w-28 pl-5 pr-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
+                                  className="w-full pl-5 pr-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
                                 />
                               </div>
                             </td>
