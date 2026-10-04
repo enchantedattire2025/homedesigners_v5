@@ -38,8 +38,21 @@ const getMaterialImage = (item: { name: string; image_url?: string | null }): st
 };
 
 const ItemThumbnail = ({ src }: { src: string | null }) => {
-  if (!src) return <div className="w-[200px] h-[200px] bg-gray-100 rounded-lg flex items-center justify-center text-gray-400 text-xs text-center px-2">No image</div>;
-  return <img src={src} alt="material" className="w-[200px] h-[200px] object-contain rounded-lg border border-gray-200" />;
+  if (!src) {
+    return (
+      <div className="w-[50px] h-[50px] bg-gray-100 rounded-lg flex items-center justify-center text-gray-400 text-xs text-center px-1 print-item-image">
+        No image
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={src}
+      alt="material"
+      className="w-[50px] h-[50px] object-contain rounded-lg border border-gray-200 print-item-image"
+    />
+  );
 };
 
 interface QuoteItem {
@@ -205,24 +218,97 @@ const QuoteViewer = () => {
     <div className="min-h-screen bg-gray-50">
       <style>
         {`
+          @page {
+            size: A4 landscape;
+            margin: 8mm;
+          }
+
           @media print {
+            html,
+            body {
+              width: 100% !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              background: white !important;
+            }
+
             body * {
               visibility: hidden;
             }
-            #print-area, #print-area * {
+
+            #print-area,
+            #print-area * {
               visibility: visible;
             }
+
             #print-area {
-              position: absolute;
-              left: 0;
-              top: 0;
-              width: 100%;
+              position: absolute !important;
+              left: 0 !important;
+              top: 0 !important;
+              width: 100% !important;
+              max-width: none !important;
+              margin: 0 !important;
+              padding: 6mm !important;
+              box-sizing: border-box !important;
+              background: white !important;
+              box-shadow: none !important;
+              border-radius: 0 !important;
             }
+
+            #print-area .quote-items-wrapper {
+              width: 100% !important;
+              max-width: 100% !important;
+              overflow: visible !important;
+            }
+
+            #print-area .print-quote-table {
+              width: 100% !important;
+              max-width: 100% !important;
+              min-width: 0 !important;
+              table-layout: fixed !important;
+              border-collapse: collapse !important;
+              font-size: 8px !important;
+            }
+
+            #print-area .print-quote-table th,
+            #print-area .print-quote-table td {
+              padding: 3px 2px !important;
+              line-height: 1.25 !important;
+              white-space: normal !important;
+              overflow-wrap: anywhere !important;
+              word-break: break-word !important;
+              vertical-align: top !important;
+            }
+
+            #print-area .print-quote-table th {
+              font-size: 7.5px !important;
+              line-height: 1.15 !important;
+            }
+
+            #print-area .print-quote-table .print-item-image {
+              width: 34px !important;
+              height: 34px !important;
+              max-width: 34px !important;
+              max-height: 34px !important;
+              object-fit: contain !important;
+            }
+
+            #print-area .print-quote-table thead {
+              display: table-header-group;
+            }
+
+            #print-area .print-quote-table tr {
+              break-inside: avoid;
+              page-break-inside: avoid;
+            }
+
             .no-print {
               display: none !important;
             }
+
             .print-break-inside {
               break-inside: avoid;
+              page-break-inside: avoid;
             }
           }
         `}
@@ -338,8 +424,22 @@ const QuoteViewer = () => {
 
           <div className="mb-8">
             <h4 className="font-semibold text-secondary-800 mb-4 text-lg">Quote Items</h4>
-            <div className="overflow-x-auto">
-              <table className="w-full border border-gray-200">
+            <div className="overflow-x-auto quote-items-wrapper">
+              <table className="w-full border border-gray-200 print-quote-table">
+                <colgroup>
+                  <col style={{ width: '8%' }} />
+                  <col style={{ width: '15%' }} />
+                  <col style={{ width: '7%' }} />
+                  <col style={{ width: '5%' }} />
+                  <col style={{ width: '9%' }} />
+                  <col style={{ width: '6%' }} />
+                  <col style={{ width: '7%' }} />
+                  <col style={{ width: '7%' }} />
+                  <col style={{ width: '7%' }} />
+                  <col style={{ width: '11%' }} />
+                  <col style={{ width: '7%' }} />
+                  <col style={{ width: '11%' }} />
+                </colgroup>
                 <thead className="bg-gray-100">
                   <tr>
                     <th className="text-left py-3 px-4 font-semibold text-secondary-800 border-b">Item</th>
