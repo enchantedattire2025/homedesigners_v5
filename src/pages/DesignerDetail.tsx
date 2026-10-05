@@ -583,18 +583,15 @@ const DesignerDetail = () => {
                   CONTACT DESIGNER CARD
               ================================================== */}
 
-              <div className="bg-white rounded-xl shadow-lg p-6 sticky top-24">
-
-                {/* Header */}
-                <div className="pb-5 border-b border-gray-100">
-
-                  <h3 className="text-xl font-bold text-secondary-800">
-                    Contact Designer
-                  </h3>
-
-                  <div className="mt-2 w-8 h-0.5 bg-primary-500 rounded-full"></div>
-
+              <div className="pb-5 border-b border-gray-100">
+                <h3 className="text-xl font-bold text-secondary-800 leading-tight">
+                  Contact Designer
+                </h3>
+              
+                <div className="mt-2.5 flex items-center">
+                  <span className="block w-10 h-[2px] bg-primary-500 rounded-full"></span>
                 </div>
+              </div>
 
                 {/* Starting Price */}
                 {designer.starting_price && (
