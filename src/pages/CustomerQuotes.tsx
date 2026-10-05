@@ -171,6 +171,10 @@ const CustomerQuotes = () => {
               .select('*')
               .eq('quote_id', quote.id);
 
+            console.log('QUOTE ID:', quote.id);
+            console.log('QUOTE ITEMS:', items);
+            console.log('QUOTE ITEMS ERROR:', itemsError);
+
             if (itemsError) {
               console.error('Error fetching quote items:', itemsError);
               return { ...quote, items: [] };
