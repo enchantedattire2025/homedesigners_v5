@@ -1,6 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Star, MapPin, Calendar, Award, Phone, Mail, ArrowLeft, ExternalLink, User, Navigation } from 'lucide-react';
+import {
+  Star,
+  MapPin,
+  Calendar,
+  Award,
+  Phone,
+  Mail,
+  ArrowLeft,
+  ExternalLink,
+  User,
+  Navigation
+} from 'lucide-react';
 import { FaInstagram } from 'react-icons/fa';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
@@ -25,6 +36,7 @@ const DesignerDetail = () => {
   const { id } = useParams();
   const { user, isDesigner } = useAuth();
   const navigate = useNavigate();
+
   const [designer, setDesigner] = useState<Designer | null>(null);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [loading, setLoading] = useState(true);
@@ -115,7 +127,9 @@ const DesignerDetail = () => {
     }
   };
 
-  const handleContactAction = (action: 'phone' | 'email' | 'website') => {
+  const handleContactAction = (
+    action: 'phone' | 'email' | 'website'
+  ) => {
     if (!user) {
       setShowAuthModal(true);
       return;
@@ -129,12 +143,17 @@ const DesignerDetail = () => {
           window.open(`tel:${designer.phone}`, '_self');
         }
         break;
+
       case 'email':
         window.open(`mailto:${designer.email}`, '_self');
         break;
+
       case 'website':
         if (designer.website) {
-          const url = designer.website.startsWith('http') ? designer.website : `https://${designer.website}`;
+          const url = designer.website.startsWith('http')
+            ? designer.website
+            : `https://${designer.website}`;
+
           window.open(url, '_blank', 'noopener,noreferrer');
         }
         break;
@@ -143,9 +162,13 @@ const DesignerDetail = () => {
 
   const handleGetDirections = () => {
     if (!designer?.google_location_url) return;
+
     const url = designer.google_location_url.startsWith('http')
       ? designer.google_location_url
-      : `https://maps.google.com/?q=${encodeURIComponent(designer.google_location_url)}`;
+      : `https://maps.google.com/?q=${encodeURIComponent(
+          designer.google_location_url
+        )}`;
+
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
@@ -154,7 +177,7 @@ const DesignerDetail = () => {
       setShowAuthModal(true);
       return;
     }
-    // Redirect to customer registration or project creation
+
     navigate('/register-customer');
   };
 
@@ -163,7 +186,9 @@ const DesignerDetail = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading designer details...</p>
+          <p className="text-gray-600">
+            Loading designer details...
+          </p>
         </div>
       </div>
     );
@@ -174,10 +199,19 @@ const DesignerDetail = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="bg-red-50 border border-red-200 text-red-600 px-6 py-4 rounded-lg mb-4">
-            <p className="font-medium">Error loading designer details</p>
-            <p className="text-sm">{error || 'Designer not found'}</p>
+            <p className="font-medium">
+              Error loading designer details
+            </p>
+
+            <p className="text-sm">
+              {error || 'Designer not found'}
+            </p>
           </div>
-          <Link to="/designers" className="btn-primary">
+
+          <Link
+            to="/designers"
+            className="btn-primary"
+          >
             Back to Designers
           </Link>
         </div>
@@ -185,35 +219,51 @@ const DesignerDetail = () => {
     );
   }
 
-
-  const mockPortfolio = designer.portfolio_images.map((image, index) => ({
-    id: index + 1,
-    title: `Project ${index + 1}`,
-    image: image,
-    category: 'Residential'
-  }));
+  const mockPortfolio = designer.portfolio_images.map(
+    (image, index) => ({
+      id: index + 1,
+      title: `Project ${index + 1}`,
+      image: image,
+      category: 'Residential'
+    })
+  );
 
   return (
     <>
       <div className="min-h-screen bg-gray-50">
+
         {/* Header */}
         <div className="bg-white shadow-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <Link to="/designers" className="inline-flex items-center text-primary-600 hover:text-primary-700 mb-4">
+
+            <Link
+              to="/designers"
+              className="inline-flex items-center text-primary-600 hover:text-primary-700 mb-4 transition-colors"
+            >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Designers
             </Link>
+
           </div>
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Main Content */}
+
+            {/* =====================================================
+                MAIN CONTENT
+            ====================================================== */}
             <div className="lg:col-span-2 space-y-8">
+
               {/* Designer Info */}
               <div className="bg-white rounded-xl shadow-lg p-8">
+
                 <div className="flex flex-col md:flex-row items-start space-y-6 md:space-y-0 md:space-x-8">
+
+                  {/* Profile Image */}
                   <div className="w-32 h-32 mx-auto md:mx-0 flex-shrink-0">
+
                     {designer.profile_image ? (
                       <img
                         src={designer.profile_image}
@@ -225,41 +275,59 @@ const DesignerDetail = () => {
                         <User className="w-16 h-16 text-white" />
                       </div>
                     )}
+
                   </div>
-                  
+
+                  {/* Designer Details */}
                   <div className="flex-1 text-center md:text-left">
+
                     <div className="flex items-center justify-center md:justify-start space-x-3 mb-2">
+
                       <h1 className="text-3xl font-bold text-secondary-800">
                         {designer.name}
                       </h1>
+
                       {designer.is_verified && (
                         <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
                           Verified
                         </span>
                       )}
+
                     </div>
+
                     <p className="text-xl text-primary-600 font-medium mb-4">
                       {designer.specialization}
                     </p>
-                    
+
                     <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 mb-4 text-gray-600">
+
                       <div className="flex items-center space-x-1">
                         <MapPin className="w-4 h-4" />
                         <span>{designer.location}</span>
                       </div>
+
                       <div className="flex items-center space-x-1">
                         <Calendar className="w-4 h-4" />
-                        <span>{designer.experience} years experience</span>
+                        <span>
+                          {designer.experience} years experience
+                        </span>
                       </div>
+
                       <div className="flex items-center space-x-1">
                         <Award className="w-4 h-4" />
-                        <span>{designer.total_projects} projects completed</span>
+                        <span>
+                          {designer.total_projects} projects completed
+                        </span>
                       </div>
+
                     </div>
 
                     <div className="flex items-center justify-center md:justify-start space-x-4 mb-6">
+
                       <div className="flex items-center space-x-2">
+
                         <div className="flex items-center">
+
                           {[...Array(5)].map((_, i) => (
                             <Star
                               key={i}
@@ -270,10 +338,19 @@ const DesignerDetail = () => {
                               }`}
                             />
                           ))}
+
                         </div>
-                        <span className="font-semibold">{designer.rating}</span>
-                        <span className="text-gray-600">({designer.total_reviews} reviews)</span>
+
+                        <span className="font-semibold">
+                          {designer.rating}
+                        </span>
+
+                        <span className="text-gray-600">
+                          ({designer.total_reviews} reviews)
+                        </span>
+
                       </div>
+
                     </div>
 
                     {designer.bio && (
@@ -281,221 +358,430 @@ const DesignerDetail = () => {
                         {designer.bio}
                       </p>
                     )}
+
                   </div>
                 </div>
               </div>
 
               {/* Services */}
-              {designer.services && designer.services.length > 0 && (
-                <div className="bg-white rounded-xl shadow-lg p-8">
-                  <h2 className="text-2xl font-bold text-secondary-800 mb-6">Services Offered</h2>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {designer.services.map((service, index) => (
-                      <div key={index} className="bg-primary-50 text-primary-800 px-4 py-3 rounded-lg text-center font-medium">
-                        {service}
-                      </div>
-                    ))}
+              {designer.services &&
+                designer.services.length > 0 && (
+                  <div className="bg-white rounded-xl shadow-lg p-8">
+
+                    <h2 className="text-2xl font-bold text-secondary-800 mb-6">
+                      Services Offered
+                    </h2>
+
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+
+                      {designer.services.map(
+                        (service, index) => (
+                          <div
+                            key={index}
+                            className="bg-primary-50 text-primary-800 px-4 py-3 rounded-lg text-center font-medium"
+                          >
+                            {service}
+                          </div>
+                        )
+                      )}
+
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
               {/* Portfolio */}
               {mockPortfolio.length > 0 && (
                 <div className="bg-white rounded-xl shadow-lg p-8">
-                  <h2 className="text-2xl font-bold text-secondary-800 mb-6">Portfolio</h2>
+
+                  <h2 className="text-2xl font-bold text-secondary-800 mb-6">
+                    Portfolio
+                  </h2>
+
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
                     {mockPortfolio.map((project) => (
-                      <div key={project.id} className="group relative">
+                      <div
+                        key={project.id}
+                        className="group relative"
+                      >
+
                         <div className="relative overflow-hidden rounded-lg">
+
                           <img
                             src={project.image}
                             alt={project.title}
                             className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                           />
+
                           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+
                             <ExternalLink className="w-8 h-8 text-white" />
+
                           </div>
+
                         </div>
+
                         <h3 className="text-lg font-semibold text-secondary-800 mt-3 group-hover:text-primary-600 transition-colors">
                           {project.title}
                         </h3>
-                        <p className="text-gray-600">{project.category}</p>
+
+                        <p className="text-gray-600">
+                          {project.category}
+                        </p>
+
                       </div>
                     ))}
+
                   </div>
                 </div>
               )}
 
               {/* Materials Expertise */}
-              {designer.materials_expertise && designer.materials_expertise.length > 0 && (
-                <div className="bg-white rounded-xl shadow-lg p-8">
-                  <h2 className="text-2xl font-bold text-secondary-800 mb-6">Materials Expertise</h2>
-                  <div className="flex flex-wrap gap-3">
-                    {designer.materials_expertise.map((material, index) => (
-                      <span key={index} className="bg-accent-100 text-accent-800 px-4 py-2 rounded-full text-sm font-medium">
-                        {material}
-                      </span>
-                    ))}
+              {designer.materials_expertise &&
+                designer.materials_expertise.length > 0 && (
+                  <div className="bg-white rounded-xl shadow-lg p-8">
+
+                    <h2 className="text-2xl font-bold text-secondary-800 mb-6">
+                      Materials Expertise
+                    </h2>
+
+                    <div className="flex flex-wrap gap-3">
+
+                      {designer.materials_expertise.map(
+                        (material, index) => (
+                          <span
+                            key={index}
+                            className="bg-accent-100 text-accent-800 px-4 py-2 rounded-full text-sm font-medium"
+                          >
+                            {material}
+                          </span>
+                        )
+                      )}
+
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
               {/* Testimonials */}
               <div className="bg-white rounded-xl shadow-lg p-8">
-                <h2 className="text-2xl font-bold text-secondary-800 mb-6">Client Testimonials</h2>
+
+                <h2 className="text-2xl font-bold text-secondary-800 mb-6">
+                  Client Testimonials
+                </h2>
+
                 {testimonials.length > 0 ? (
                   <div className="space-y-6">
+
                     {testimonials.map((testimonial) => (
-                      <div key={testimonial.id} className="border-l-4 border-primary-500 pl-6">
+                      <div
+                        key={testimonial.id}
+                        className="border-l-4 border-primary-500 pl-6"
+                      >
+
                         <div className="flex items-start justify-between mb-3">
+
                           <div>
-                            <h3 className="font-bold text-lg text-secondary-800 mb-1">{testimonial.title}</h3>
+
+                            <h3 className="font-bold text-lg text-secondary-800 mb-1">
+                              {testimonial.title}
+                            </h3>
+
                             <div className="flex items-center space-x-2 mb-2">
+
                               <div className="flex items-center">
-                                {[...Array(5)].map((_, i) => (
-                                  <Star
-                                    key={i}
-                                    className={`w-4 h-4 ${
-                                      i < testimonial.rating
-                                        ? 'text-yellow-400 fill-current'
-                                        : 'text-gray-300'
-                                    }`}
-                                  />
-                                ))}
+
+                                {[...Array(5)].map(
+                                  (_, i) => (
+                                    <Star
+                                      key={i}
+                                      className={`w-4 h-4 ${
+                                        i <
+                                        testimonial.rating
+                                          ? 'text-yellow-400 fill-current'
+                                          : 'text-gray-300'
+                                      }`}
+                                    />
+                                  )
+                                )}
+
                               </div>
-                              <span className="font-semibold text-secondary-800">{testimonial.customer_name}</span>
+
+                              <span className="font-semibold text-secondary-800">
+                                {testimonial.customer_name}
+                              </span>
+
                               {testimonial.verified_purchase && (
                                 <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-medium">
                                   Verified
                                 </span>
                               )}
+
                             </div>
                           </div>
+
                           <span className="text-xs text-gray-500">
-                            {new Date(testimonial.created_at).toLocaleDateString('en-US', {
-                              year: 'numeric',
-                              month: 'short',
-                              day: 'numeric'
-                            })}
+
+                            {new Date(
+                              testimonial.created_at
+                            ).toLocaleDateString(
+                              'en-US',
+                              {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric'
+                              }
+                            )}
+
                           </span>
+
                         </div>
-                        <p className="text-gray-700 mb-3 leading-relaxed">{testimonial.comment}</p>
+
+                        <p className="text-gray-700 mb-3 leading-relaxed">
+                          {testimonial.comment}
+                        </p>
+
                         <div className="flex items-center justify-between">
+
                           <p className="text-sm text-primary-600 font-medium">
                             Project: {testimonial.project_name}
                           </p>
+
                           {testimonial.would_recommend && (
                             <span className="text-sm text-green-600 font-medium flex items-center">
-                              <span className="mr-1">✓</span> Recommends
+                              <span className="mr-1">
+                                ✓
+                              </span>
+                              Recommends
                             </span>
                           )}
+
                         </div>
+
                       </div>
                     ))}
+
                   </div>
                 ) : (
-                  <p className="text-gray-600 text-center py-8">No testimonials yet.</p>
+                  <p className="text-gray-600 text-center py-8">
+                    No testimonials yet.
+                  </p>
                 )}
+
               </div>
             </div>
 
-            {/* Sidebar */}
+            {/* =====================================================
+                SIDEBAR
+            ====================================================== */}
             <div className="space-y-6">
-              {/* Contact Card */}
+
+              {/* =================================================
+                  UPDATED CONTACT DESIGNER CARD
+              ================================================== */}
               <div className="bg-white rounded-xl shadow-lg p-6 sticky top-24">
-                <h3 className="text-xl font-bold text-secondary-800 mb-4">Contact Designer</h3>
-                
+
+                {/* Card Header */}
+                <div className="mb-6">
+
+                  <h3 className="text-xl font-bold text-secondary-800">
+                    Contact Designer
+                  </h3>
+
+                  <div className="mt-2 h-1 w-10 bg-primary-500 rounded-full"></div>
+
+                </div>
+
+                {/* Starting Price */}
                 {designer.starting_price && (
-                  <div className="space-y-4 mb-6">
-                    <div className="text-center">
-                      <p className="text-sm text-gray-600 mb-1">Starting from</p>
-                      <p className="text-2xl font-bold text-primary-600">{designer.starting_price}</p>
+                  <div className="mb-6 pb-6 border-b border-gray-100">
+
+                    <div className="flex flex-col">
+
+                      <span className="text-sm font-medium text-gray-500 mb-1">
+                        Starting From
+                      </span>
+
+                      <span className="text-2xl font-bold text-primary-600 leading-tight">
+                        {designer.starting_price}
+                      </span>
+
                     </div>
+
                   </div>
                 )}
 
+                {/* Contact Information */}
                 {user ? (
-                  <div className="space-y-3 mb-6">
+                  <div className="space-y-4">
+
+                    {/* Phone */}
                     {designer.phone && (
                       <button
-                        onClick={() => handleContactAction('phone')}
-                        className="flex items-center space-x-3 text-gray-600 hover:text-primary-600 transition-colors w-full text-left"
+                        type="button"
+                        onClick={() =>
+                          handleContactAction('phone')
+                        }
+                        className="group flex items-center w-full min-w-0 text-left text-gray-600 hover:text-primary-600 transition-colors"
                       >
-                        <Phone className="w-5 h-5" />
-                        <span>{designer.phone}</span>
+
+                        <span className="w-7 min-w-[28px] flex items-center justify-center flex-shrink-0">
+                          <Phone className="w-5 h-5" />
+                        </span>
+
+                        <span className="ml-3 flex-1 min-w-0 text-sm leading-5 break-words">
+                          {designer.phone}
+                        </span>
+
                       </button>
                     )}
+
+                    {/* Email */}
                     <button
-                      onClick={() => handleContactAction('email')}
-                      className="flex items-center space-x-3 text-gray-600 hover:text-primary-600 transition-colors w-full text-left"
+                      type="button"
+                      onClick={() =>
+                        handleContactAction('email')
+                      }
+                      className="group flex items-center w-full min-w-0 text-left text-gray-600 hover:text-primary-600 transition-colors"
                     >
-                      <Mail className="w-5 h-5" />
-                      <span>{designer.email}</span>
+
+                      <span className="w-7 min-w-[28px] flex items-center justify-center flex-shrink-0">
+                        <Mail className="w-5 h-5" />
+                      </span>
+
+                      <span className="ml-3 flex-1 min-w-0 text-sm leading-5 break-all">
+                        {designer.email}
+                      </span>
+
                     </button>
+
+                    {/* Website */}
                     {designer.website && (
                       <button
-                        onClick={() => handleContactAction('website')}
-                        className="flex items-center space-x-3 text-gray-600 hover:text-primary-600 transition-colors w-full text-left"
+                        type="button"
+                        onClick={() =>
+                          handleContactAction('website')
+                        }
+                        className="group flex items-center w-full min-w-0 text-left text-gray-600 hover:text-primary-600 transition-colors"
                       >
-                        <ExternalLink className="w-5 h-5" />
-                        <span>{designer.website}</span>
+
+                        <span className="w-7 min-w-[28px] flex items-center justify-center flex-shrink-0">
+                          <ExternalLink className="w-5 h-5" />
+                        </span>
+
+                        <span className="ml-3 flex-1 min-w-0 text-sm leading-5 break-all">
+                          {designer.website}
+                        </span>
+
                       </button>
                     )}
+
+                    {/* Instagram */}
                     {designer.instagram_url && (
                       <a
                         href={designer.instagram_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center space-x-3 text-gray-600 hover:text-pink-500 transition-colors w-full text-left"
+                        className="group flex items-center w-full min-w-0 text-left text-gray-600 hover:text-pink-500 transition-colors"
                       >
-                        <FaInstagram style={{ width: '20px', height: '20px' }} />
-                        <span>Instagram Portfolio</span>
+
+                        <span className="w-7 min-w-[28px] flex items-center justify-center flex-shrink-0">
+                          <FaInstagram
+                            style={{
+                              width: '20px',
+                              height: '20px'
+                            }}
+                          />
+                        </span>
+
+                        <span className="ml-3 flex-1 min-w-0 text-sm leading-5">
+                          Instagram Portfolio
+                        </span>
+
                       </a>
                     )}
+
+                    {/* Get Directions */}
                     {designer.google_location_url && (
                       <button
+                        type="button"
                         onClick={handleGetDirections}
-                        className="flex items-center justify-center space-x-2 w-full bg-green-600 hover:bg-green-700 text-white py-2.5 px-4 rounded-lg font-semibold transition-colors mt-2"
+                        className="w-full mt-5 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white py-2.5 px-4 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md"
                       >
-                        <Navigation className="w-4 h-4" />
-                        <span>Get Directions</span>
+
+                        <Navigation className="w-4 h-4 flex-shrink-0" />
+
+                        <span>
+                          Get Directions
+                        </span>
+
                       </button>
                     )}
+
                   </div>
                 ) : (
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                    <p className="text-blue-800 text-sm text-center">
-                      Please sign in to view contact information and get in touch with this designer.
+
+                  /* Login Required Message */
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+
+                    <p className="text-blue-800 text-sm text-center leading-relaxed">
+                      Please sign in to view contact information
+                      and get in touch with this designer.
                     </p>
+
                   </div>
+
                 )}
 
+                {/* Get Quote */}
                 {user && !isDesigner && (
-                  <div className="space-y-3">
+                  <div className="mt-5 pt-5 border-t border-gray-100">
+
                     <button
+                      type="button"
                       onClick={handleGetQuote}
                       className="w-full btn-primary"
                     >
                       Get Quote
                     </button>
+
                   </div>
                 )}
+
               </div>
 
               {/* Awards */}
-              {designer.awards && designer.awards.length > 0 && (
-                <div className="bg-white rounded-xl shadow-lg p-6">
-                  <h3 className="text-xl font-bold text-secondary-800 mb-4">Awards & Recognition</h3>
-                  <div className="space-y-3">
-                    {designer.awards.map((award, index) => (
-                      <div key={index} className="flex items-start space-x-3">
-                        <Award className="w-5 h-5 text-primary-600 mt-0.5 flex-shrink-0" />
-                        <p className="text-gray-600 text-sm">{award}</p>
-                      </div>
-                    ))}
+              {designer.awards &&
+                designer.awards.length > 0 && (
+                  <div className="bg-white rounded-xl shadow-lg p-6">
+
+                    <h3 className="text-xl font-bold text-secondary-800 mb-4">
+                      Awards & Recognition
+                    </h3>
+
+                    <div className="space-y-3">
+
+                      {designer.awards.map(
+                        (award, index) => (
+                          <div
+                            key={index}
+                            className="flex items-start space-x-3"
+                          >
+
+                            <Award className="w-5 h-5 text-primary-600 mt-0.5 flex-shrink-0" />
+
+                            <p className="text-gray-600 text-sm">
+                              {award}
+                            </p>
+
+                          </div>
+                        )
+                      )}
+
+                    </div>
+
                   </div>
-                </div>
-              )}
+                )}
+
             </div>
           </div>
         </div>
@@ -509,6 +795,7 @@ const DesignerDetail = () => {
         onModeChange={setAuthMode}
         onAuthSuccess={() => {
           setShowAuthModal(false);
+
           // Refresh the page to show contact info
           window.location.reload();
         }}
