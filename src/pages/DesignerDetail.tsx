@@ -750,9 +750,10 @@ const DesignerDetail = () => {
           // Refresh the page to show contact info
           window.location.reload();
         }}
-      >
-    >
+      />
+    </>
   );
 };
+
 
 export default DesignerDetail;
