@@ -165,21 +165,11 @@ const CustomerQuotes = () => {
           console.log('Direct quotes found:', directQuotes.length);
 
           // For each quote, fetch its items
-          const { data: items, error: itemsError } = await supabase
-  .from('quote_items')
-  .select('*')
-  .eq('quote_id', quote.id);
-
-console.log('========== QUOTE ITEM DEBUG ==========');
-console.log('QUOTE ID:', quote.id);
-console.log('ITEMS:', items);
-console.log('ITEMS ERROR:', itemsError);
-console.log('ITEM COUNT:', items?.length);
-console.log('======================================');
-
-            console.log('QUOTE ID:', quote.id);
-            console.log('QUOTE ITEMS:', items);
-            console.log('QUOTE ITEMS ERROR:', itemsError);
+          const quotesWithItems = await Promise.all(directQuotes.map(async (quote) => {
+            const { data: items, error: itemsError } = await supabase
+              .from('quote_items')
+              .select('*')
+              .eq('quote_id', quote.id);
 
             if (itemsError) {
               console.error('Error fetching quote items:', itemsError);
