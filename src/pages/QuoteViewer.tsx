@@ -214,11 +214,13 @@ const QuoteViewer = () => {
             width: 100%;
             max-width: 100%;
             overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
           }
 
           .print-quote-table {
             width: 100%;
             max-width: 100%;
+            min-width: 1180px;
             table-layout: fixed;
             border-collapse: collapse;
           }
@@ -240,6 +242,22 @@ const QuoteViewer = () => {
           .print-quote-table td {
             font-size: 10px;
             line-height: 1.25;
+          }
+
+          .print-quote-table th,
+          .print-quote-table td {
+            box-sizing: border-box;
+          }
+
+          .print-quote-table td:nth-child(1),
+          .print-quote-table td:nth-child(2),
+          .print-quote-table td:nth-child(3),
+          .print-quote-table td:nth-child(6) {
+            text-align: left;
+          }
+
+          .print-quote-table th {
+            overflow: hidden;
           }
 
           @media print {
@@ -286,7 +304,7 @@ const QuoteViewer = () => {
               min-width: 0 !important;
               table-layout: fixed !important;
               border-collapse: collapse !important;
-              font-size: 8px !important;
+              font-size: 7.5px !important;
             }
 
             #print-area .print-quote-table th,
@@ -451,24 +469,24 @@ const QuoteViewer = () => {
 
           <div className="mb-8">
             <h4 className="font-semibold text-secondary-800 mb-4 text-lg">Quote Items</h4>
-            <div className="quote-items-wrapper w-full overflow-x-auto">
+            <div className="quote-items-wrapper w-full">
               <table
                 className="w-full border border-gray-200 print-quote-table"
                 style={{ tableLayout: 'fixed', width: '100%' }}
               >
                 <colgroup>
-                  <col style={{ width: '8%' }} />
-                  <col style={{ width: '13%' }} />
-                  <col style={{ width: '5%' }} />
+                  <col style={{ width: '10%' }} />
+                  <col style={{ width: '16%' }} />
+                  <col style={{ width: '7%' }} />
                   <col style={{ width: '6%' }} />
                   <col style={{ width: '9%' }} />
-                  <col style={{ width: '6%' }} />
                   <col style={{ width: '7%' }} />
                   <col style={{ width: '7%' }} />
                   <col style={{ width: '7%' }} />
-                  <col style={{ width: '11%' }} />
                   <col style={{ width: '7%' }} />
-                  <col style={{ width: '14%' }} />
+                  <col style={{ width: '10%' }} />
+                  <col style={{ width: '7%' }} />
+                  <col style={{ width: '7%' }} />
                 </colgroup>
                 <thead className="bg-gray-100">
                   <tr>
@@ -536,6 +554,16 @@ const QuoteViewer = () => {
                         </tr>
                       ))}
                     </>
+                  )}
+                  {quote.items.length === 0 && (
+                    <tr>
+                      <td
+                        colSpan={12}
+                        className="py-8 px-4 text-center text-gray-500 border-b"
+                      >
+                        No quote items found for this quotation.
+                      </td>
+                    </tr>
                   )}
                 </tbody>
               </table>
