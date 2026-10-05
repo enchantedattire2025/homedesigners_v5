@@ -582,32 +582,23 @@ const DesignerDetail = () => {
               {/* =================================================
                   CONTACT DESIGNER CARD
               ================================================== */}
-            
+
               <div className="bg-white rounded-xl shadow-lg p-6 sticky top-24">
-            
+
                 {/* Header */}
                 <div className="pb-5 border-b border-gray-100">
                   <h3 className="text-xl font-bold text-secondary-800 leading-tight">
                     Contact Designer
                   </h3>
-            
+
                   <div className="mt-2.5 flex items-center">
                     <span className="block w-10 h-[2px] bg-primary-500 rounded-full"></span>
                   </div>
                 </div>
-                <h3 className="text-xl font-bold text-secondary-800 leading-tight">
-                  Contact Designer
-                </h3>
-              
-                <div className="mt-2.5 flex items-center">
-                  <span className="block w-10 h-[2px] bg-primary-500 rounded-full"></span>
-                </div>
-              </div>
 
                 {/* Starting Price */}
                 {designer.starting_price && (
                   <div className="py-5 border-b border-gray-100">
-
                     <p className="text-sm font-medium text-gray-500 mb-1">
                       Starting From
                     </p>
@@ -615,7 +606,6 @@ const DesignerDetail = () => {
                     <p className="text-2xl font-bold text-primary-600 leading-none">
                       {designer.starting_price}
                     </p>
-
                   </div>
                 )}
 
@@ -629,12 +619,9 @@ const DesignerDetail = () => {
                       {designer.phone && (
                         <button
                           type="button"
-                          onClick={() =>
-                            handleContactAction('phone')
-                          }
+                          onClick={() => handleContactAction('phone')}
                           className="w-full flex items-center gap-3 px-2 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-primary-600 transition-all duration-200 text-left"
                         >
-
                           <span className="w-8 h-8 rounded-md bg-gray-50 flex items-center justify-center flex-shrink-0">
                             <Phone className="w-4 h-4" />
                           </span>
@@ -642,19 +629,15 @@ const DesignerDetail = () => {
                           <span className="text-sm font-medium truncate">
                             {designer.phone}
                           </span>
-
                         </button>
                       )}
 
                       {/* Email */}
                       <button
                         type="button"
-                        onClick={() =>
-                          handleContactAction('email')
-                        }
+                        onClick={() => handleContactAction('email')}
                         className="w-full flex items-center gap-3 px-2 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-primary-600 transition-all duration-200 text-left"
                       >
-
                         <span className="w-8 h-8 rounded-md bg-gray-50 flex items-center justify-center flex-shrink-0">
                           <Mail className="w-4 h-4" />
                         </span>
@@ -662,19 +645,15 @@ const DesignerDetail = () => {
                         <span className="text-sm font-medium truncate">
                           {designer.email}
                         </span>
-
                       </button>
 
                       {/* Website */}
                       {designer.website && (
                         <button
                           type="button"
-                          onClick={() =>
-                            handleContactAction('website')
-                          }
+                          onClick={() => handleContactAction('website')}
                           className="w-full flex items-center gap-3 px-2 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-primary-600 transition-all duration-200 text-left"
                         >
-
                           <span className="w-8 h-8 rounded-md bg-gray-50 flex items-center justify-center flex-shrink-0">
                             <ExternalLink className="w-4 h-4" />
                           </span>
@@ -682,7 +661,6 @@ const DesignerDetail = () => {
                           <span className="text-sm font-medium truncate">
                             {designer.website}
                           </span>
-
                         </button>
                       )}
 
@@ -694,7 +672,6 @@ const DesignerDetail = () => {
                           rel="noopener noreferrer"
                           className="w-full flex items-center gap-3 px-2 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-pink-500 transition-all duration-200"
                         >
-
                           <span className="w-8 h-8 rounded-md bg-gray-50 flex items-center justify-center flex-shrink-0">
                             <FaInstagram className="w-4 h-4" />
                           </span>
@@ -702,7 +679,6 @@ const DesignerDetail = () => {
                           <span className="text-sm font-medium">
                             Instagram Portfolio
                           </span>
-
                         </a>
                       )}
 
@@ -715,34 +691,23 @@ const DesignerDetail = () => {
                         onClick={handleGetDirections}
                         className="w-full mt-5 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white py-2.5 px-4 rounded-lg font-semibold text-sm transition-all duration-200"
                       >
-
                         <Navigation className="w-4 h-4" />
-
-                        <span>
-                          Get Directions
-                        </span>
-
+                        <span>Get Directions</span>
                       </button>
                     )}
 
                   </div>
                 ) : (
-
-                  /* Login Required */
                   <div className="mt-5 bg-blue-50 border border-blue-200 rounded-lg p-4">
-
                     <p className="text-blue-800 text-sm text-center leading-relaxed">
-                      Please sign in to view contact information
-                      and get in touch with this designer.
+                      Please sign in to view contact information and get in touch with this designer.
                     </p>
-
                   </div>
                 )}
 
                 {/* Get Quote */}
                 {user && !isDesigner && (
                   <div className="mt-5 pt-5 border-t border-gray-100">
-
                     <button
                       type="button"
                       onClick={handleGetQuote}
@@ -750,7 +715,6 @@ const DesignerDetail = () => {
                     >
                       Get Quote
                     </button>
-
                   </div>
                 )}
 
