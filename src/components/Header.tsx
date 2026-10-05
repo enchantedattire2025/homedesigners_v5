@@ -164,26 +164,35 @@ const Header = () => {
   return (
     <>
       <header className="bg-white shadow-lg sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            {/* Logo */}
-            <Link to="/" className="flex items-center space-x-3">
+        <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center h-16 gap-6">
+
+            {/* Logo / Application Name */}
+            <Link
+              to="/"
+              className="flex items-center gap-3 flex-shrink-0 whitespace-nowrap min-w-fit"
+            >
               <img
                 src="/icons/icon.svg"
                 alt=""
-                className="h-10 w-auto"
-                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                className="h-9 w-9 flex-shrink-0 object-contain"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
               />
-              <span className="text-xl font-bold text-secondary-800">TheHomeDesigners</span>
+
+              <span className="text-xl font-bold text-secondary-800 whitespace-nowrap leading-none">
+                TheHomeDesigners
+              </span>
             </Link>
 
             {/* Desktop Navigation */}
-            <nav className="hidden md:flex space-x-8">
+            <nav className="hidden md:flex flex-1 min-w-0 items-center justify-center gap-1 lg:gap-2">
               {navigation.map((item) => (
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
+                  className={`flex-shrink-0 whitespace-nowrap px-3 lg:px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
                     isActive(item.href)
                       ? 'text-primary-600 bg-primary-50'
                       : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
@@ -195,14 +204,14 @@ const Header = () => {
             </nav>
 
             {/* Auth Section */}
-            <div className="hidden md:flex items-center space-x-4">
+            <div className="hidden md:flex items-center space-x-3 flex-shrink-0 min-w-fit">
               {user ? (
                 <>
                   <NotificationBell />
                   <div ref={userMenuRef} className="relative">
                     <button
                       onClick={() => setShowUserMenu(prev => !prev)}
-                      className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                      className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 transition-colors whitespace-nowrap"
                     >
                       {isDesigner && designer?.profile_image ? (
                         <img
@@ -215,7 +224,7 @@ const Header = () => {
                           <User className="w-4 h-4 text-white" />
                         </div>
                       )}
-                      <span className="text-sm font-medium text-gray-700">
+                      <span className="text-sm font-medium text-gray-700 max-w-[190px] lg:max-w-[230px] truncate">
                         {user.user_metadata?.name || user.email}
                       </span>
                     </button>
@@ -382,7 +391,7 @@ const Header = () => {
             </div>
 
             {/* Mobile menu button */}
-            <div className="md:hidden">
+            <div className="md:hidden ml-auto flex-shrink-0">
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 className="p-2 rounded-md text-gray-700 hover:text-primary-600 hover:bg-gray-100"
