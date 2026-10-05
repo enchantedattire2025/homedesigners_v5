@@ -216,11 +216,10 @@ const QuoteViewer = () => {
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
           }
-
+          
           .print-quote-table {
             width: 100%;
             max-width: 100%;
-            min-width: 1180px;
             table-layout: fixed;
             border-collapse: collapse;
           }
