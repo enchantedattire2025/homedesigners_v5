@@ -580,175 +580,126 @@ const DesignerDetail = () => {
               ================================================== */}
               <div className="bg-white rounded-xl shadow-lg p-6 sticky top-24">
 
-                {/* Card Header */}
-                <div className="mb-6">
-
-                  <h3 className="text-xl font-bold text-secondary-800">
-                    Contact Designer
-                  </h3>
-
-                  <div className="mt-2 h-1 w-10 bg-primary-500 rounded-full"></div>
-
-                </div>
-
-                {/* Starting Price */}
-                {designer.starting_price && (
-                  <div className="mb-6 pb-6 border-b border-gray-100">
-
-                    <div className="flex flex-col">
-
-                      <span className="text-sm font-medium text-gray-500 mb-1">
+               {/* Contact Designer Card */}
+                <div className="bg-white rounded-xl shadow-lg p-6 sticky top-24">
+                
+                  {/* Header */}
+                  <div className="pb-5 border-b border-gray-100">
+                    <h3 className="text-xl font-bold text-secondary-800">
+                      Contact Designer
+                    </h3>
+                
+                    <div className="mt-2 w-8 h-0.5 bg-primary-500 rounded-full"></div>
+                  </div>
+                
+                  {/* Starting Price */}
+                  {designer.starting_price && (
+                    <div className="py-5 border-b border-gray-100">
+                
+                      <p className="text-sm font-medium text-gray-500 mb-1">
                         Starting From
-                      </span>
-
-                      <span className="text-2xl font-bold text-primary-600 leading-tight">
+                      </p>
+                
+                      <p className="text-2xl font-bold text-primary-600 leading-none">
                         {designer.starting_price}
-                      </span>
-
+                      </p>
+                
                     </div>
-
-                  </div>
-                )}
-
-                {/* Contact Information */}
-                {user ? (
-                  <div className="space-y-4">
-
-                    {/* Phone */}
-                    {designer.phone && (
+                  )}
+                
+                  {/* Contact Details */}
+                  {user ? (
+                    <div className="pt-4">
+                
+                      <div className="space-y-1">
+                
+                        {/* Phone */}
+                        {designer.phone && (
+                          <button
+                            type="button"
+                            onClick={() => handleContactAction('phone')}
+                            className="w-full flex items-center gap-3 px-2 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-primary-600 transition-all duration-200 text-left"
+                          >
+                            <span className="w-8 h-8 rounded-md bg-gray-50 flex items-center justify-center flex-shrink-0">
+                              <Phone className="w-4 h-4" />
+                            </span>
+                
+                            <span className="text-sm font-medium truncate">
+                              {designer.phone}
+                            </span>
+                          </button>
+                        )}
+                
+                        {/* Email */}
+                        <button
+                          type="button"
+                          onClick={() => handleContactAction('email')}
+                          className="w-full flex items-center gap-3 px-2 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-primary-600 transition-all duration-200 text-left"
+                        >
+                          <span className="w-8 h-8 rounded-md bg-gray-50 flex items-center justify-center flex-shrink-0">
+                            <Mail className="w-4 h-4" />
+                          </span>
+                
+                          <span className="text-sm font-medium truncate">
+                            {designer.email}
+                          </span>
+                        </button>
+                
+                        {/* Instagram */}
+                        {designer.instagram_url && (
+                          <a
+                            href={designer.instagram_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full flex items-center gap-3 px-2 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-pink-500 transition-all duration-200"
+                          >
+                            <span className="w-8 h-8 rounded-md bg-gray-50 flex items-center justify-center flex-shrink-0">
+                              <FaInstagram className="w-4 h-4" />
+                            </span>
+                
+                            <span className="text-sm font-medium">
+                              Instagram Portfolio
+                            </span>
+                          </a>
+                        )}
+                
+                      </div>
+                
+                      {/* Get Directions */}
+                      {designer.google_location_url && (
+                        <button
+                          type="button"
+                          onClick={handleGetDirections}
+                          className="w-full mt-5 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white py-2.5 px-4 rounded-lg font-semibold text-sm transition-all duration-200"
+                        >
+                          <Navigation className="w-4 h-4" />
+                          <span>Get Directions</span>
+                        </button>
+                      )}
+                
+                    </div>
+                  ) : (
+                    <div className="mt-5 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <p className="text-blue-800 text-sm text-center leading-relaxed">
+                        Please sign in to view contact information and get in touch with this designer.
+                      </p>
+                    </div>
+                  )}
+                
+                  {/* Get Quote */}
+                  {user && !isDesigner && (
+                    <div className="mt-5 pt-5 border-t border-gray-100">
                       <button
                         type="button"
-                        onClick={() =>
-                          handleContactAction('phone')
-                        }
-                        className="group flex items-center w-full min-w-0 text-left text-gray-600 hover:text-primary-600 transition-colors"
+                        onClick={handleGetQuote}
+                        className="w-full btn-primary"
                       >
-
-                        <span className="w-7 min-w-[28px] flex items-center justify-center flex-shrink-0">
-                          <Phone className="w-5 h-5" />
-                        </span>
-
-                        <span className="ml-3 flex-1 min-w-0 text-sm leading-5 break-words">
-                          {designer.phone}
-                        </span>
-
+                        Get Quote
                       </button>
-                    )}
-
-                    {/* Email */}
-                    <button
-                      type="button"
-                      onClick={() =>
-                        handleContactAction('email')
-                      }
-                      className="group flex items-center w-full min-w-0 text-left text-gray-600 hover:text-primary-600 transition-colors"
-                    >
-
-                      <span className="w-7 min-w-[28px] flex items-center justify-center flex-shrink-0">
-                        <Mail className="w-5 h-5" />
-                      </span>
-
-                      <span className="ml-3 flex-1 min-w-0 text-sm leading-5 break-all">
-                        {designer.email}
-                      </span>
-
-                    </button>
-
-                    {/* Website */}
-                    {designer.website && (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          handleContactAction('website')
-                        }
-                        className="group flex items-center w-full min-w-0 text-left text-gray-600 hover:text-primary-600 transition-colors"
-                      >
-
-                        <span className="w-7 min-w-[28px] flex items-center justify-center flex-shrink-0">
-                          <ExternalLink className="w-5 h-5" />
-                        </span>
-
-                        <span className="ml-3 flex-1 min-w-0 text-sm leading-5 break-all">
-                          {designer.website}
-                        </span>
-
-                      </button>
-                    )}
-
-                    {/* Instagram */}
-                    {designer.instagram_url && (
-                      <a
-                        href={designer.instagram_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="group flex items-center w-full min-w-0 text-left text-gray-600 hover:text-pink-500 transition-colors"
-                      >
-
-                        <span className="w-7 min-w-[28px] flex items-center justify-center flex-shrink-0">
-                          <FaInstagram
-                            style={{
-                              width: '20px',
-                              height: '20px'
-                            }}
-                          />
-                        </span>
-
-                        <span className="ml-3 flex-1 min-w-0 text-sm leading-5">
-                          Instagram Portfolio
-                        </span>
-
-                      </a>
-                    )}
-
-                    {/* Get Directions */}
-                    {designer.google_location_url && (
-                      <button
-                        type="button"
-                        onClick={handleGetDirections}
-                        className="w-full mt-5 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white py-2.5 px-4 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md"
-                      >
-
-                        <Navigation className="w-4 h-4 flex-shrink-0" />
-
-                        <span>
-                          Get Directions
-                        </span>
-
-                      </button>
-                    )}
-
-                  </div>
-                ) : (
-
-                  /* Login Required Message */
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-
-                    <p className="text-blue-800 text-sm text-center leading-relaxed">
-                      Please sign in to view contact information
-                      and get in touch with this designer.
-                    </p>
-
-                  </div>
-
-                )}
-
-                {/* Get Quote */}
-                {user && !isDesigner && (
-                  <div className="mt-5 pt-5 border-t border-gray-100">
-
-                    <button
-                      type="button"
-                      onClick={handleGetQuote}
-                      className="w-full btn-primary"
-                    >
-                      Get Quote
-                    </button>
-
-                  </div>
-                )}
-
-              </div>
-
+                    </div>
+                  )}
+                
+                </div>
               {/* Awards */}
               {designer.awards &&
                 designer.awards.length > 0 && (
