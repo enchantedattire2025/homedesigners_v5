@@ -68,6 +68,8 @@ interface Customer {
   budget_range: string;
   status: string;
   created_at: string;
+  updated_at?: string;
+  completed_at?: string | number | null;
 }
 
 interface DesignerEarning {
@@ -169,6 +171,189 @@ const AdminDashboard = () => {
     }
   };
 
+
+  /**
+   * Returns the actual completion date to display in Earnings.
+   *
+   * The old UI used new Date(earning.completed_at) directly.
+   * If completed_at was 0, JavaScript converted it to 01/01/1970.
+   *
+   * We now:
+   * 1. Use a valid earning.completed_at first.
+   * 2. If it is 0/invalid, find the matching completed customer/project.
+   * 3. Prefer customer.completed_at.
+   * 4. Fall back to customer.updated_at only when the project is completed.
+   * 5. Never display the misleading 01/01/1970 date.
+   */
+  const getActualCompletionDate = (
+    earning: DesignerEarning,
+    customerRecords: Customer[]
+  ): string => {
+    const rawEarningDate = earning.completed_at;
+
+    if (
+      rawEarningDate !== null &&
+      rawEarningDate !== undefined &&
+      rawEarningDate !== ''
+    ) {
+      const numericDate =
+        typeof rawEarningDate === 'number'
+          ? rawEarningDate
+          : Number(rawEarningDate);
+
+      if (Number.isFinite(numericDate) && numericDate > 0) {
+        const parsed = new Date(rawEarningDate);
+
+        if (!Number.isNaN(parsed.getTime()) && parsed.getTime() > 0) {
+          return parsed.toLocaleDateString('en-IN');
+        }
+      }
+    }
+
+    const matchingCustomers = customerRecords
+      .filter(
+        customer =>
+          customer.project_name === earning.project_name &&
+          customer.status === 'completed'
+      )
+      .sort((a, b) => {
+        const aRaw =
+          a.completed_at !== null &&
+          a.completed_at !== undefined &&
+          a.completed_at !== ''
+            ? a.completed_at
+            : a.updated_at;
+
+        const bRaw =
+          b.completed_at !== null &&
+          b.completed_at !== undefined &&
+          b.completed_at !== ''
+            ? b.completed_at
+            : b.updated_at;
+
+        const aTime = aRaw ? new Date(aRaw).getTime() : 0;
+        const bTime = bRaw ? new Date(bRaw).getTime() : 0;
+
+        return bTime - aTime;
+      });
+
+    const matchingCustomer = matchingCustomers[0];
+
+    if (matchingCustomer) {
+      const fallbackDate =
+        matchingCustomer.completed_at !== null &&
+        matchingCustomer.completed_at !== undefined &&
+        matchingCustomer.completed_at !== ''
+          ? matchingCustomer.completed_at
+          : matchingCustomer.updated_at;
+
+      if (fallbackDate) {
+        const parsed = new Date(fallbackDate);
+
+        if (!Number.isNaN(parsed.getTime()) && parsed.getTime() > 0) {
+          return parsed.toLocaleDateString('en-IN');
+        }
+      }
+    }
+
+    return '—';
+  };
+
+  const syncMissingEarningCompletionDates = async (
+    earningsRecords: DesignerEarning[],
+    customerRecords: Customer[]
+  ) => {
+    const updates = earningsRecords
+      .map(earning => {
+        const rawDate = earning.completed_at;
+        const numericDate =
+          rawDate === null || rawDate === undefined || rawDate === ''
+            ? 0
+            : Number(rawDate);
+
+        const validDate =
+          Number.isFinite(numericDate) && numericDate > 0
+            ? new Date(rawDate).getTime() > 0
+            : false;
+
+        if (validDate) {
+          return null;
+        }
+
+        const matchingCustomers = customerRecords
+          .filter(
+            customer =>
+              customer.project_name === earning.project_name &&
+              customer.status === 'completed'
+          )
+          .sort((a, b) => {
+            const aRaw =
+              a.completed_at !== null &&
+              a.completed_at !== undefined &&
+              a.completed_at !== ''
+                ? a.completed_at
+                : a.updated_at;
+
+            const bRaw =
+              b.completed_at !== null &&
+              b.completed_at !== undefined &&
+              b.completed_at !== ''
+                ? b.completed_at
+                : b.updated_at;
+
+            return (
+              new Date(bRaw || 0).getTime() -
+              new Date(aRaw || 0).getTime()
+            );
+          });
+
+        const customer = matchingCustomers[0];
+
+        const completionDate =
+          customer?.completed_at !== null &&
+          customer?.completed_at !== undefined &&
+          customer?.completed_at !== ''
+            ? customer.completed_at
+            : customer?.updated_at;
+
+        if (!completionDate) {
+          return null;
+        }
+
+        const parsed = new Date(completionDate);
+
+        if (Number.isNaN(parsed.getTime()) || parsed.getTime() <= 0) {
+          return null;
+        }
+
+        return {
+          id: earning.id,
+          completed_at: parsed.toISOString()
+        };
+      })
+      .filter(
+        (
+          item
+        ): item is { id: string; completed_at: string } =>
+          item !== null
+      );
+
+    for (const update of updates) {
+      const { error } = await supabase
+        .from('designer_projects_earnings')
+        .update({ completed_at: update.completed_at })
+        .eq('id', update.id);
+
+      if (error) {
+        console.error(
+          'Failed to repair earning completion date:',
+          update.id,
+          error
+        );
+      }
+    }
+  };
+
   const fetchAdminData = async () => {
     try {
       setLoading(true);
@@ -212,6 +397,32 @@ const AdminDashboard = () => {
       setDesigners(designersData || []);
       setCustomers(customersData || []);
       setEarnings(earningsData || []);
+
+      // Repair legacy earnings rows whose completed_at is 0/null/invalid.
+      // This prevents the bad epoch date from continuing to appear.
+      await syncMissingEarningCompletionDates(
+        earningsData || [],
+        customersData || []
+      );
+
+      // Re-read earnings after repairing legacy completion dates.
+      const { data: refreshedEarningsData, error: refreshedEarningsError } =
+        await supabase
+          .from('designer_projects_earnings')
+          .select(`
+            *,
+            designers (name)
+          `)
+          .order('completed_at', { ascending: false });
+
+      if (refreshedEarningsError) {
+        console.error(
+          'Error refreshing repaired earnings:',
+          refreshedEarningsError
+        );
+      } else {
+        setEarnings(refreshedEarningsData || []);
+      }
 
       // Calculate stats
       const totalDesigners = designersData?.length || 0;
@@ -559,10 +770,24 @@ const AdminDashboard = () => {
 
       if (error) throw error;
 
+      const savedCompletedAt =
+        editingCustomer.status === 'completed'
+          ? (
+              editingCustomer.completed_at ||
+              customerUpdateData.completed_at ||
+              null
+            )
+          : editingCustomer.completed_at;
+
+      const updatedCustomer = {
+        ...editingCustomer,
+        completed_at: savedCompletedAt as Customer['completed_at']
+      };
+
       setCustomers(prev =>
         prev.map(customer =>
           customer.id === editingCustomer.id
-            ? editingCustomer
+            ? updatedCustomer
             : customer
         )
       );
@@ -2151,9 +2376,10 @@ const AdminDashboard = () => {
 
                         <td className="py-4 px-6 text-gray-600">
 
-                          {new Date(
-                            earning.completed_at
-                          ).toLocaleDateString()}
+                          {getActualCompletionDate(
+                            earning,
+                            customers
+                          )}
 
                         </td>
 
