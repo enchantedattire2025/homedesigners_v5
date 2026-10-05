@@ -751,7 +751,7 @@ const DesignerDetail = () => {
           window.location.reload();
         }}
       >
-    </>
+    >
   );
 };
 
