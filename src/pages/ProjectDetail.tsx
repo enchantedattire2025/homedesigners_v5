@@ -536,7 +536,7 @@ const ProjectDetail = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-w-0">
         {/* Project Header */}
         <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -655,7 +655,7 @@ const ProjectDetail = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 min-w-0">
           {/* Challenge & Solution */}
           <div className="bg-white rounded-xl shadow-lg p-8">
             <h2 className="text-2xl font-bold text-secondary-800 mb-6">Challenges & Solutions</h2>
@@ -664,47 +664,59 @@ const ProjectDetail = () => {
               <div className="space-y-6">
                 <div>
                   <h3 className="text-lg font-semibold text-primary-600 mb-3">The Challenge</h3>
-                  <p className="text-gray-600 leading-relaxed whitespace-pre-line">{project.challenge}</p>
+                  <p className="text-gray-600 leading-relaxed whitespace-pre-line break-words [overflow-wrap:anywhere]">{project.challenge}</p>
                 </div>
 
                 <div>
                   <h3 className="text-lg font-semibold text-primary-600 mb-3">Our Solution</h3>
-                  <p className="text-gray-600 leading-relaxed whitespace-pre-line">{project.solution}</p>
+                  <p className="text-gray-600 leading-relaxed whitespace-pre-line break-words [overflow-wrap:anywhere]">{project.solution}</p>
                 </div>
               </div>
             ) : (
-              <div className="text-gray-600 leading-relaxed whitespace-pre-line">{project.challenge}</div>
+              <div className="text-gray-600 leading-relaxed whitespace-pre-line break-words [overflow-wrap:anywhere]">{project.challenge}</div>
             )}
           </div>
 
           {/* Timeline */}
-          <div className="bg-white rounded-xl shadow-lg p-8">
-            <h2 className="text-2xl font-bold text-secondary-800 mb-6">Project Timeline</h2>
+          <div className="bg-white rounded-xl shadow-lg p-8 min-w-0">
+            <h2 className="text-2xl font-bold text-secondary-800 mb-6">
+              Project Timeline
+            </h2>
 
             {Array.isArray(project.timeline) ? (
-              <div className="space-y-4">
+              <div className="space-y-4 min-w-0">
                 {project.timeline.map((phase, index) => (
-                  <div key={index} className="flex space-x-4">
-                    <div className="flex flex-col items-center">
+                  <div key={index} className="flex space-x-4 min-w-0">
+                    <div className="flex flex-col items-center flex-shrink-0">
                       <div className="w-3 h-3 bg-primary-500 rounded-full"></div>
+
                       {index < project.timeline.length - 1 && (
                         <div className="w-0.5 h-16 bg-gray-200 mt-2"></div>
                       )}
                     </div>
-                    <div className="flex-1 pb-8">
-                      <div className="flex items-center space-x-2 mb-2">
-                        <h3 className="font-semibold text-secondary-800">{phase.phase}</h3>
-                        <span className="bg-accent-100 text-accent-800 px-2 py-1 rounded-md text-xs font-medium">
+
+                    <div className="flex-1 min-w-0 pb-8">
+                      <div className="flex flex-wrap items-center gap-2 mb-2">
+                        <h3 className="font-semibold text-secondary-800 break-words">
+                          {phase.phase}
+                        </h3>
+
+                        <span className="bg-accent-100 text-accent-800 px-2 py-1 rounded-md text-xs font-medium flex-shrink-0">
                           {phase.duration}
                         </span>
                       </div>
-                      <p className="text-gray-600 text-sm">{phase.description}</p>
+
+                      <p className="text-gray-600 text-sm leading-relaxed break-words [overflow-wrap:anywhere] whitespace-pre-line">
+                        {phase.description}
+                      </p>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="text-gray-600 leading-relaxed whitespace-pre-line">{project.timeline}</div>
+              <div className="w-full min-w-0 text-gray-600 leading-relaxed whitespace-pre-line break-words [overflow-wrap:anywhere]">
+                {project.timeline}
+              </div>
             )}
           </div>
         </div>
@@ -755,7 +767,7 @@ const ProjectDetail = () => {
                         return (
                           <div key={i} className="flex items-center space-x-1.5">
                             <div className={`w-3 h-3 rounded-full ${colors[i % colors.length]}`} />
-                            <span className="text-xs text-gray-600">{m.name} ({pct.toFixed(0)}%)</span>
+                            <span className="text-xs text-gray-600 break-words [overflow-wrap:anywhere]">{m.name} ({pct.toFixed(0)}%)</span>
                           </div>
                         );
                       })}
@@ -763,13 +775,13 @@ const ProjectDetail = () => {
                   </div>
 
                   {/* Table */}
-                  <div className="overflow-x-auto rounded-lg border border-gray-200">
-                    <table className="w-full text-sm">
+                  <div className="w-full overflow-hidden rounded-lg border border-gray-200">
+                    <table className="w-full table-fixed text-sm">
                       <thead>
                         <tr className="bg-secondary-800 text-white">
                           <th className="text-center py-3 px-4 font-semibold w-12">#</th>
-                          <th className="text-left py-3 px-4 font-semibold">Material / Item</th>
-                          <th className="text-left py-3 px-4 font-semibold">Usage / Scope</th>
+                          <th className="text-left py-3 px-4 font-semibold w-[28%]">Material / Item</th>
+                          <th className="text-left py-3 px-4 font-semibold w-[38%]">Usage / Scope</th>
                           <th className="text-center py-3 px-4 font-semibold w-20">Share</th>
                           <th className="text-right py-3 px-4 font-semibold w-36">Cost</th>
                         </tr>
@@ -782,19 +794,21 @@ const ProjectDetail = () => {
                               key={index}
                               className={`border-b border-gray-100 transition-colors hover:bg-gray-50 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}`}
                             >
-                              <td className="py-3.5 px-4 text-center text-gray-400 font-mono text-xs">
+                              <td className="py-3.5 px-4 text-center text-gray-400 font-mono text-xs align-top">
                                 {String(index + 1).padStart(2, '0')}
                               </td>
-                              <td className="py-3.5 px-4">
-                                <span className="font-semibold text-secondary-800">{material.name}</span>
+                              <td className="py-3.5 px-4 align-top break-words [overflow-wrap:anywhere]">
+                                <span className="font-semibold text-secondary-800 break-words [overflow-wrap:anywhere]">
+                                  {material.name}
+                                </span>
                               </td>
-                              <td className="py-3.5 px-4 text-gray-500">{material.usage}</td>
+                              <td className="py-3.5 px-4 text-gray-500 align-top break-words [overflow-wrap:anywhere] whitespace-pre-line">{material.usage}</td>
                               <td className="py-3.5 px-4 text-center">
                                 <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${lightColors[index % lightColors.length]}`}>
                                   {pct.toFixed(0)}%
                                 </span>
                               </td>
-                              <td className="py-3.5 px-4 text-right">
+                              <td className="py-3.5 px-4 text-right align-top whitespace-nowrap">
                                 <span className="font-bold text-primary-600 text-sm">{material.cost}</span>
                               </td>
                             </tr>
@@ -820,7 +834,7 @@ const ProjectDetail = () => {
               );
             })()
           ) : (
-            <div className="text-gray-600 leading-relaxed whitespace-pre-line">{project.materials}</div>
+            <div className="w-full min-w-0 text-gray-600 leading-relaxed whitespace-pre-line break-words [overflow-wrap:anywhere]">{project.materials}</div>
           )}
         </div>
 
