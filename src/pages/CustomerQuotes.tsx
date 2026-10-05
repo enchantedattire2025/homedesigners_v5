@@ -18,6 +18,7 @@ import {
   Upload,
   Paperclip
 } from 'lucide-react';
+
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import SendToDesignerModal from '../components/SendToDesignerModal';
@@ -32,11 +33,38 @@ interface QuoteItem {
   unit_price: number;
   amount: number;
   item_type: string;
+  section?: string;
+  number_of_units?: number;
+
   width?: number;
   height?: number;
   depth?: number;
+
   length?: number;
   breadth?: number;
+
+  width_unit?: string;
+  height_unit?: string;
+  depth_unit?: string;
+
+  area_sqft?: number;
+  per_sqft_rate?: number;
+}
+
+interface Designer {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  specialization: string;
+  profile_image: string;
+}
+
+interface Project {
+  id: string;
+  project_name: string;
+  user_id?: string;
+  assigned_designer_id?: string;
 }
 
 interface Quote {
@@ -57,307 +85,511 @@ interface Quote {
   notes: string;
   created_at: string;
   updated_at: string;
+
   customer_accepted: boolean;
   acceptance_date: string | null;
   customer_feedback: string | null;
+
   assigned_designer_id?: string;
+
   quotation_file_url?: string | null;
   payment_receipt_url?: string | null;
   design_image_url?: string | null;
-  designer: {
-    id: string;
-    name: string;
-    email: string;
-    phone: string;
-    specialization: string;
-    profile_image: string;
-  };
-  project: {
-    id: string;
-    project_name: string;
-    assigned_designer_id?: string;
-  };
+
+  designer: Designer | null;
+  project: Project | null;
+
   items: QuoteItem[];
 }
 
 const CustomerQuotes = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+
   const projectIdFilter = searchParams.get('projectId');
+
   const { user, loading: authLoading } = useAuth();
+
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [allQuotes, setAllQuotes] = useState<Quote[]>([]);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
   const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null);
+
   const [feedbackText, setFeedbackText] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
   const [showAssignModal, setShowAssignModal] = useState(false);
-  const [selectedProjectForAssignment, setSelectedProjectForAssignment] = useState<any>(null);
-  const [paymentReceiptFile, setPaymentReceiptFile] = useState<File | null>(null);
+  const [selectedProjectForAssignment, setSelectedProjectForAssignment] =
+    useState<Project | null>(null);
+
+  const [paymentReceiptFile, setPaymentReceiptFile] =
+    useState<File | null>(null);
+
   const [uploadingReceipt, setUploadingReceipt] = useState(false);
-  
+
   useEffect(() => {
-    if (authLoading) return;
+    if (authLoading) {
+      return;
+    }
+
     if (!user) {
       navigate('/');
       return;
     }
-    
+
     fetchQuotes();
   }, [authLoading, user, navigate]);
 
-  const fetchQuotes = async () => {
-   // if (!user) return;
-
-    try {
-      setLoading(true);
-      setError(null);
-
-      // First try using the RPC function
-      const { data: quotesData, error: quotesError } = await supabase
-        .rpc('get_customer_quotes');
-
-      if (quotesError) throw quotesError;
-      
-      console.log('Quotes data:', quotesData);
-      
-      // If no quotes data from RPC, try direct query filtered by user
-      if (!quotesData || quotesData.length === 0) {
-        console.log('No quotes from RPC, trying direct query...');
-
-        // Get user's projects first
-        const { data: customerProjects, error: projectsError } = await supabase
-          .from('customers')
-          .select('id')
-          .eq('user_id', user.id);
-
-        if (projectsError) throw projectsError;
-
-        if (!customerProjects || customerProjects.length === 0) {
-          setQuotes([]);
-          setLoading(false);
-          return;
-        }
-
-        const projectIds = customerProjects.map(p => p.id);
-
-        console.log('Project IDs:', projectIds);
-
-        // Direct query filtered by user's projects
-        const { data: directQuotes, error: directError } = await supabase
-          .from('designer_quotes')
-          .select(`
-            *,
-            designer:designers(id, name, email, phone, specialization, profile_image),
-            project:customers(id, project_name, user_id, assigned_designer_id)
-          `)
-          .in('project_id', projectIds)
-          .order('created_at', { ascending: false });
-
-        if (directError) {
-          console.error('Error in direct quotes query:', directError);
-          throw directError;
-        }
-
-        if (directQuotes) {
-          console.log('Direct quotes found:', directQuotes.length);
-
-          // For each quote, fetch its items
-          const { data: items, error: itemsError } = await supabase
-  .from('quote_items')
-  .select('*')
-  .eq('quote_id', quote.id);
-
-console.log('========== QUOTE ITEM DEBUG ==========');
-console.log('QUOTE ID:', quote.id);
-console.log('ITEMS:', items);
-console.log('ITEMS ERROR:', itemsError);
-console.log('ITEM COUNT:', items?.length);
-console.log('======================================');
-
-            console.log('QUOTE ID:', quote.id);
-            console.log('QUOTE ITEMS:', items);
-            console.log('QUOTE ITEMS ERROR:', itemsError);
-
-            if (itemsError) {
-              console.error('Error fetching quote items:', itemsError);
-              return { ...quote, items: [] };
-            }
-
-            return { ...quote, items: items || [] };
-          }));
-
-          setQuotes(quotesWithItems);
-          setLoading(false);
-          return;
-        }
-      }
-      
-      // Process quotes from the RPC function
-      const processedQuotes = await Promise.all(
-  (quotesData || []).map(async (quote) => {
-    // Parse items if they're in JSON string format
-    let items = quote.items || [];
-
-    if (typeof items === 'string') {
-      try {
-        items = JSON.parse(items);
-      } catch (e) {
-        console.error('Error parsing items JSON:', e);
-        items = [];
-      }
+  /**
+   * Fetch quote items directly from quote_items.
+   * This is intentionally done for every quote, regardless
+   * of whether the RPC already returned an items field.
+   */
+  const fetchQuoteItems = async (
+    quoteId: string
+  ): Promise<QuoteItem[]> => {
+    if (!quoteId) {
+      return [];
     }
 
-    // Fetch designer information
-    let designer = null;
+    const { data, error } = await supabase
+      .from('quote_items')
+      .select('*')
+      .eq('quote_id', quoteId);
+
+    if (error) {
+      console.error(
+        `Error fetching quote_items for quote ${quoteId}:`,
+        error
+      );
+
+      return [];
+    }
+
+    return (data || []) as QuoteItem[];
+  };
+
+  /**
+   * Fetch designer information.
+   */
+  const fetchDesigner = async (
+    designerId: string | null | undefined
+  ): Promise<Designer | null> => {
+    if (!designerId) {
+      return null;
+    }
+
+    const { data, error } = await supabase
+      .from('designers')
+      .select(
+        'id, name, email, phone, specialization, profile_image'
+      )
+      .eq('id', designerId)
+      .maybeSingle();
+
+    if (error) {
+      console.error('Error fetching designer:', error);
+      return null;
+    }
+
+    return data as Designer | null;
+  };
+
+  /**
+   * Normalize a quote returned from RPC/direct query.
+   */
+  const buildQuote = async (quote: any): Promise<Quote> => {
+    const items = await fetchQuoteItems(quote.id);
+
+    let designer: Designer | null = null;
 
     if (quote.designer_id) {
-      const { data: designerData, error: designerError } = await supabase
-        .from('designers')
-        .select('id, name, email, phone, specialization, profile_image')
-        .eq('id', quote.designer_id)
-        .maybeSingle();
+      designer = await fetchDesigner(quote.designer_id);
+    } else if (quote.designer) {
+      designer = quote.designer;
+    }
 
-      if (designerError) {
-        console.error('Error fetching designer:', designerError);
-      }
+    let project: Project | null = null;
 
-      designer = designerData;
+    if (quote.project) {
+      project = quote.project;
     }
 
     return {
       ...quote,
       designer,
+      project,
       items
-    };
-  })
-);
-      setAllQuotes(processedQuotes);
+    } as Quote;
+  };
 
-      // Filter by project if projectId is in URL
+  const fetchQuotes = async () => {
+    if (!user) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      /**
+       * First try the existing RPC.
+       */
+      const {
+        data: quotesData,
+        error: quotesError
+      } = await supabase.rpc('get_customer_quotes');
+
+      if (quotesError) {
+        console.error('Error from get_customer_quotes:', quotesError);
+      }
+
+      /**
+       * If RPC returns quotes, we STILL fetch quote_items
+       * directly for every quote.
+       */
+      if (quotesData && quotesData.length > 0) {
+        console.log(
+          'Quotes returned from RPC:',
+          quotesData.length
+        );
+
+        const processedQuotes = await Promise.all(
+          quotesData.map(async (quote: any) => {
+            return buildQuote(quote);
+          })
+        );
+
+        setAllQuotes(processedQuotes);
+
+        if (projectIdFilter) {
+          setQuotes(
+            processedQuotes.filter(
+              quote => quote.project_id === projectIdFilter
+            )
+          );
+        } else {
+          setQuotes(processedQuotes);
+        }
+
+        return;
+      }
+
+      /**
+       * RPC returned no quotes.
+       * Fall back to direct query.
+       */
+      console.log(
+        'No quotes returned from RPC. Trying direct query...'
+      );
+
+      const {
+        data: customerProjects,
+        error: projectsError
+      } = await supabase
+        .from('customers')
+        .select('id')
+        .eq('user_id', user.id);
+
+      if (projectsError) {
+        throw projectsError;
+      }
+
+      if (!customerProjects || customerProjects.length === 0) {
+        setQuotes([]);
+        setAllQuotes([]);
+        return;
+      }
+
+      const projectIds = customerProjects.map(
+        project => project.id
+      );
+
+      console.log('Project IDs:', projectIds);
+
+      /**
+       * Get quotes belonging to the customer's projects.
+       */
+      const {
+        data: directQuotes,
+        error: directError
+      } = await supabase
+        .from('designer_quotes')
+        .select(`
+          *,
+          designer:designers(
+            id,
+            name,
+            email,
+            phone,
+            specialization,
+            profile_image
+          ),
+          project:customers(
+            id,
+            project_name,
+            user_id,
+            assigned_designer_id
+          )
+        `)
+        .in('project_id', projectIds)
+        .order('created_at', {
+          ascending: false
+        });
+
+      if (directError) {
+        console.error(
+          'Error in direct quotes query:',
+          directError
+        );
+
+        throw directError;
+      }
+
+      if (!directQuotes || directQuotes.length === 0) {
+        setQuotes([]);
+        setAllQuotes([]);
+        return;
+      }
+
+      console.log(
+        'Direct quotes found:',
+        directQuotes.length
+      );
+
+      /**
+       * IMPORTANT:
+       * Fetch quote_items for EVERY quote.
+       */
+      const quotesWithItems = await Promise.all(
+        directQuotes.map(async (quote: any) => {
+          return buildQuote(quote);
+        })
+      );
+
+      setAllQuotes(quotesWithItems);
+
       if (projectIdFilter) {
-        setQuotes(processedQuotes.filter(q => q.project_id === projectIdFilter));
+        setQuotes(
+          quotesWithItems.filter(
+            quote => quote.project_id === projectIdFilter
+          )
+        );
       } else {
-        setQuotes(processedQuotes);
+        setQuotes(quotesWithItems);
       }
     } catch (error: any) {
       console.error('Error fetching quotes:', error);
-      setError(error.message || 'Failed to load quotes');
+
+      setError(
+        error?.message ||
+          'Failed to load quotes'
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  const handleAcceptQuote = async (quoteId: string) => {
-    if (!user) return;
+  const handleAcceptQuote = async (
+    quoteId: string
+  ) => {
+    if (!user) {
+      return;
+    }
 
     try {
       setSubmitting(true);
       setError(null);
 
-      let paymentReceiptUrl = null;
+      let paymentReceiptUrl: string | null = null;
 
-      // Upload payment receipt if provided
+      /**
+       * Upload payment receipt if provided.
+       */
       if (paymentReceiptFile) {
         setUploadingReceipt(true);
 
-        const fileExt = paymentReceiptFile.name.split('.').pop();
-        const fileName = `${Date.now()}_receipt.${fileExt}`;
-        const filePath = `${quoteId}/payment/${fileName}`;
+        const fileExt =
+          paymentReceiptFile.name.split('.').pop() ||
+          'file';
 
-        const { data: uploadData, error: uploadError } = await supabase.storage
+        const fileName =
+          `${Date.now()}_receipt.${fileExt}`;
+
+        const filePath =
+          `${quoteId}/payment/${fileName}`;
+
+        const {
+          data: uploadData,
+          error: uploadError
+        } = await supabase.storage
           .from('quotation-attachments')
-          .upload(filePath, paymentReceiptFile, {
-            cacheControl: '3600',
-            upsert: false
-          });
+          .upload(
+            filePath,
+            paymentReceiptFile,
+            {
+              cacheControl: '3600',
+              upsert: false
+            }
+          );
 
         if (uploadError) {
-          console.error('Error uploading payment receipt:', uploadError);
-          throw new Error('Failed to upload payment receipt. Please try again.');
+          console.error(
+            'Error uploading payment receipt:',
+            uploadError
+          );
+
+          throw new Error(
+            'Failed to upload payment receipt. Please try again.'
+          );
         }
 
-        // Get the public URL for the uploaded file
-        const { data: urlData } = supabase.storage
+        const {
+          data: urlData
+        } = supabase.storage
           .from('quotation-attachments')
           .getPublicUrl(filePath);
 
-        paymentReceiptUrl = urlData.publicUrl;
+        paymentReceiptUrl =
+          urlData.publicUrl;
+
         setUploadingReceipt(false);
       }
 
-      // First, fetch the quote to get project_id and designer_id
-      const { data: quoteData, error: fetchError } = await supabase
+      /**
+       * Fetch quote to get project and designer.
+       */
+      const {
+        data: quoteData,
+        error: fetchError
+      } = await supabase
         .from('designer_quotes')
-        .select('project_id, designer_id')
+        .select(
+          'project_id, designer_id'
+        )
         .eq('id', quoteId)
         .maybeSingle();
 
       if (fetchError) {
-        console.error('Error fetching quote:', fetchError);
-        throw new Error(fetchError.message || 'Failed to fetch quote');
+        console.error(
+          'Error fetching quote:',
+          fetchError
+        );
+
+        throw new Error(
+          fetchError.message ||
+            'Failed to fetch quote'
+        );
       }
 
       if (!quoteData) {
-        throw new Error('Quote not found or you do not have permission to accept it');
+        throw new Error(
+          'Quote not found or you do not have permission to accept it'
+        );
       }
 
-      // Update the customer project status from 'shared' to 'assigned' BEFORE
-      // marking the quote as accepted, because the RLS policy blocks customer
-      // updates once an accepted quote exists.
-      if (quoteData.project_id && quoteData.designer_id) {
-        const { error: projectError } = await supabase
+      /**
+       * Assign project before accepting quote.
+       */
+      if (
+        quoteData.project_id &&
+        quoteData.designer_id
+      ) {
+        const {
+          error: projectError
+        } = await supabase
           .from('customers')
           .update({
             assignment_status: 'assigned',
-            assigned_designer_id: quoteData.designer_id
+            assigned_designer_id:
+              quoteData.designer_id
           })
-          .eq('id', quoteData.project_id)
-          .eq('user_id', user.id);
+          .eq(
+            'id',
+            quoteData.project_id
+          )
+          .eq(
+            'user_id',
+            user.id
+          );
 
         if (projectError) {
-          console.error('Error updating project status:', projectError);
-          throw new Error('Failed to assign project: ' + projectError.message);
+          console.error(
+            'Error updating project status:',
+            projectError
+          );
+
+          throw new Error(
+            'Failed to assign project: ' +
+              projectError.message
+          );
         }
       }
 
-      // Now mark the quote as accepted
-      const { error: updateError } = await supabase
+      /**
+       * Mark quote as accepted.
+       */
+      const {
+        error: updateError
+      } = await supabase
         .from('designer_quotes')
         .update({
           customer_accepted: true,
-          acceptance_date: new Date().toISOString(),
-          customer_feedback: feedbackText || 'Quote accepted',
+          acceptance_date:
+            new Date().toISOString(),
+          customer_feedback:
+            feedbackText ||
+            'Quote accepted',
           status: 'accepted',
-          payment_receipt_url: paymentReceiptUrl
+          payment_receipt_url:
+            paymentReceiptUrl
         })
-        .eq('id', quoteId);
+        .eq(
+          'id',
+          quoteId
+        );
 
       if (updateError) {
-        console.error('Error updating quote:', updateError);
-        throw new Error(updateError.message || 'Failed to accept quote');
+        console.error(
+          'Error updating quote:',
+          updateError
+        );
+
+        throw new Error(
+          updateError.message ||
+            'Failed to accept quote'
+        );
       }
 
-      setSuccessMessage('Quote accepted successfully! The project has been assigned to your designer.');
+      setSuccessMessage(
+        'Quote accepted successfully! The project has been assigned to your designer.'
+      );
+
       setSelectedQuote(null);
       setFeedbackText('');
       setPaymentReceiptFile(null);
 
-      // Refresh quotes
       await fetchQuotes();
 
-      // Clear success message after 5 seconds
       setTimeout(() => {
         setSuccessMessage(null);
       }, 5000);
     } catch (error: any) {
-      console.error('Error accepting quote:', error);
-      const errorMessage = error.message || 'Failed to accept quote. Please make sure you have permission to accept this quote.';
-      setError(errorMessage);
+      console.error(
+        'Error accepting quote:',
+        error
+      );
 
-      // Clear error message after 5 seconds
+      setError(
+        error?.message ||
+          'Failed to accept quote. Please make sure you have permission to accept it.'
+      );
+
       setTimeout(() => {
         setError(null);
       }, 5000);
@@ -366,52 +598,78 @@ console.log('======================================');
       setUploadingReceipt(false);
     }
   };
-  
-  const handleRejectQuote = async (quoteId: string) => {
-    if (!user || !feedbackText) return;
+
+  const handleRejectQuote = async (
+    quoteId: string
+  ) => {
+    if (!user || !feedbackText.trim()) {
+      return;
+    }
 
     try {
       setSubmitting(true);
       setError(null);
 
-      const { data: updatedQuote, error: updateError } = await supabase
+      const {
+        data: updatedQuote,
+        error: updateError
+      } = await supabase
         .from('designer_quotes')
         .update({
           customer_accepted: false,
-          customer_feedback: feedbackText,
+          customer_feedback:
+            feedbackText,
           status: 'rejected'
         })
-        .eq('id', quoteId)
+        .eq(
+          'id',
+          quoteId
+        )
         .select()
         .maybeSingle();
 
       if (updateError) {
-        console.error('Error updating quote:', updateError);
-        throw new Error(updateError.message || 'Failed to reject quote');
+        console.error(
+          'Error updating quote:',
+          updateError
+        );
+
+        throw new Error(
+          updateError.message ||
+            'Failed to reject quote'
+        );
       }
 
       if (!updatedQuote) {
-        throw new Error('Quote not found or you do not have permission to reject it');
+        throw new Error(
+          'Quote not found or you do not have permission to reject it'
+        );
       }
 
-      setSuccessMessage('Quote rejected. Your feedback has been sent to the designer.');
+      setSuccessMessage(
+        'Quote rejected. Your feedback has been sent to the designer.'
+      );
+
       setSelectedQuote(null);
       setFeedbackText('');
       setPaymentReceiptFile(null);
 
-      // Refresh quotes
       await fetchQuotes();
 
-      // Clear success message after 5 seconds
       setTimeout(() => {
         setSuccessMessage(null);
       }, 5000);
     } catch (error: any) {
-      console.error('Error rejecting quote:', error);
-      const errorMessage = error.message || 'Failed to reject quote. Please make sure you have permission to reject this quote.';
-      setError(errorMessage);
+      console.error(
+        'Error rejecting quote:',
+        error
+      );
 
-      // Clear error message after 5 seconds
+      setError(
+        error?.message ||
+          'Failed to reject quote. Please make sure you have permission to reject it.'
+      );
+
       setTimeout(() => {
         setError(null);
       }, 5000);
@@ -420,20 +678,43 @@ console.log('======================================');
     }
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      maximumFractionDigits: 0
-    }).format(amount);
+  const formatCurrency = (
+    amount: number | null | undefined
+  ) => {
+    const safeAmount =
+      Number.isFinite(Number(amount))
+        ? Number(amount)
+        : 0;
+
+    return new Intl.NumberFormat(
+      'en-IN',
+      {
+        style: 'currency',
+        currency: 'INR',
+        maximumFractionDigits: 0
+      }
+    ).format(safeAmount);
   };
 
-  const getStatusBadge = (status: string, accepted: boolean) => {
+  const getStatusBadge = (
+    status: string,
+    accepted: boolean
+  ) => {
     switch (status) {
       case 'draft':
-        return <span className="bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs font-medium">Draft</span>;
+        return (
+          <span className="bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs font-medium">
+            Draft
+          </span>
+        );
+
       case 'sent':
-        return <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">Pending Review</span>;
+        return (
+          <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
+            Pending Review
+          </span>
+        );
+
       case 'accepted':
         return (
           <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium flex items-center space-x-1">
@@ -441,6 +722,7 @@ console.log('======================================');
             <span>Accepted</span>
           </span>
         );
+
       case 'rejected':
         return (
           <span className="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-medium flex items-center space-x-1">
@@ -448,10 +730,20 @@ console.log('======================================');
             <span>Rejected</span>
           </span>
         );
+
       case 'expired':
-        return <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium">Expired</span>;
+        return (
+          <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium">
+            Expired
+          </span>
+        );
+
       default:
-        return <span className="bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs font-medium">{status}</span>;
+        return (
+          <span className="bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs font-medium">
+            {status}
+          </span>
+        );
     }
   };
 
@@ -460,7 +752,10 @@ console.log('======================================');
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-12 h-12 text-primary-500 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Loading your quotes...</p>
+
+          <p className="text-gray-600">
+            Loading your quotes...
+          </p>
         </div>
       </div>
     );
@@ -470,7 +765,10 @@ console.log('======================================');
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-secondary-800 mb-4">Please sign in to view your quotes</h2>
+          <h2 className="text-2xl font-bold text-secondary-800 mb-4">
+            Please sign in to view your quotes
+          </h2>
+
           <button
             onClick={() => navigate('/')}
             className="btn-primary"
@@ -484,231 +782,462 @@ console.log('======================================');
 
   return (
     <div className="min-h-screen bg-gray-50">
+
       {/* Header */}
       <div className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
           <button
-            onClick={() => navigate('/my-projects')}
+            onClick={() =>
+              navigate('/my-projects')
+            }
             className="inline-flex items-center text-primary-600 hover:text-primary-700 mb-4"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
+
             Back to Projects
           </button>
+
           <h1 className="text-3xl font-bold text-secondary-800 mb-2">
-            {'My Quotes'}
+            My Quotes
           </h1>
+
           <p className="text-gray-600">
-            {projectIdFilter ? 'Review quotes from designers for this project' : 'Review and manage quotes from designers for your projects'}
+            {projectIdFilter
+              ? 'Review quotes from designers for this project'
+              : 'Review and manage quotes from designers for your projects'}
           </p>
+
           {projectIdFilter && (
             <button
-              onClick={() => navigate('/customer-quotes')}
+              onClick={() =>
+                navigate('/customer-quotes')
+              }
               className="mt-3 text-primary-600 hover:text-primary-700 text-sm font-medium flex items-center space-x-1"
             >
               <ArrowLeft className="w-4 h-4" />
-              <span>View All Quotes</span>
+
+              <span>
+                View All Quotes
+              </span>
             </button>
           )}
         </div>
       </div>
 
+      {/* Main */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Success Message */}
+
+        {/* Success */}
         {successMessage && (
           <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-lg mb-6 flex items-start space-x-2">
             <CheckCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
-            <span>{successMessage}</span>
-          </div>
-        )}
-        
-        {/* Error Message */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-6 flex items-start space-x-2">
-            <AlertCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
-            <span>{error}</span>
+
+            <span>
+              {successMessage}
+            </span>
           </div>
         )}
 
+        {/* Error */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-6 flex items-start space-x-2">
+            <AlertCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
+
+            <span>
+              {error}
+            </span>
+          </div>
+        )}
+
+        {/* No quotes */}
         {quotes.length === 0 ? (
           <div className="text-center py-12">
             <div className="bg-white rounded-xl shadow-lg p-12">
+
               <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-secondary-800 mb-4">No Quotes Yet</h2>
+
+              <h2 className="text-2xl font-bold text-secondary-800 mb-4">
+                No Quotes Yet
+              </h2>
+
               <p className="text-gray-600 mb-8 max-w-md mx-auto">
-                You haven't received any quotes from designers yet. Once designers create quotes for your projects, they will appear here.
+                You haven't received any quotes from designers yet.
+                Once designers create quotes for your projects,
+                they will appear here.
               </p>
+
               <button
-                onClick={() => navigate('/my-projects')}
+                onClick={() =>
+                  navigate('/my-projects')
+                }
                 className="btn-primary"
               >
                 View My Projects
               </button>
+
             </div>
           </div>
         ) : (
+
           <div className="space-y-6">
+
             {quotes.map((quote) => (
-              <div key={quote.id} className="bg-white rounded-xl shadow-lg overflow-hidden">
+
+              <div
+                key={quote.id}
+                className="bg-white rounded-xl shadow-lg overflow-hidden"
+              >
+
+                {/* Quote Header */}
                 <div className="p-6 border-b border-gray-100">
+
                   <div className="flex items-start justify-between mb-4">
+
                     <div>
+
                       <div className="flex items-center space-x-3 mb-2">
-                        <h3 className="text-xl font-semibold text-secondary-800">{quote.title}</h3>
-                        {getStatusBadge(quote.status, quote.customer_accepted)}
-                        {quote.status === 'sent' && !quote.customer_accepted && (
-                          <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">Action Required</span>
+
+                        <h3 className="text-xl font-semibold text-secondary-800">
+                          {quote.title}
+                        </h3>
+
+                        {getStatusBadge(
+                          quote.status,
+                          quote.customer_accepted
                         )}
+
+                        {quote.status === 'sent' &&
+                          !quote.customer_accepted && (
+                            <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
+                              Action Required
+                            </span>
+                          )}
+
                       </div>
-                      <p className="text-sm text-gray-500">Quote #{quote.quote_number}</p>
+
+                      <p className="text-sm text-gray-500">
+                        Quote #{quote.quote_number}
+                      </p>
+
                       <p className="text-sm text-gray-600 mt-2">
-                        Project: <span className="font-medium">{quote.project?.project_name}</span>
+                        Project:{' '}
+                        <span className="font-medium">
+                          {quote.project?.project_name ||
+                            'N/A'}
+                        </span>
+                      </p>
+
+                    </div>
+
+                    <div className="text-right">
+
+                      <p className="text-2xl font-bold text-primary-600">
+                        {formatCurrency(
+                          quote.total_amount
+                        )}
+                      </p>
+
+                      <div className="flex items-center justify-end space-x-2 text-sm text-gray-500 mt-1">
+
+                        <Calendar className="w-4 h-4" />
+
+                        <span>
+                          Valid until:{' '}
+                          {quote.valid_until
+                            ? new Date(
+                                quote.valid_until
+                              ).toLocaleDateString()
+                            : 'N/A'}
+                        </span>
+
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                  {quote.description && (
+                    <p className="text-gray-600 mb-4">
+                      {quote.description}
+                    </p>
+                  )}
+
+                  <div className="flex items-center space-x-4 text-sm text-gray-600">
+
+                    <div className="flex items-center space-x-1">
+
+                      <Clock className="w-4 h-4" />
+
+                      <span>
+                        Created:{' '}
+                        {quote.created_at
+                          ? new Date(
+                              quote.created_at
+                            ).toLocaleDateString()
+                          : 'N/A'}
+                      </span>
+
+                    </div>
+
+                    <div className="flex items-center space-x-1">
+
+                      <FileText className="w-4 h-4" />
+
+                      <span>
+                        {quote.items?.length || 0} items
+                      </span>
+
+                    </div>
+
+                  </div>
+
+                </div>
+
+                {/* Quote Summary */}
+                <div className="p-6 bg-gray-50">
+
+                  <div className="flex items-center space-x-3 mb-4">
+
+                    <div className="w-10 h-10 bg-primary-500 rounded-full flex items-center justify-center">
+
+                      {quote.designer?.profile_image ? (
+                        <img
+                          src={
+                            quote.designer.profile_image
+                          }
+                          alt={
+                            quote.designer.name
+                          }
+                          className="w-10 h-10 rounded-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-white font-semibold">
+                          {quote.designer?.name?.charAt(0) ||
+                            'D'}
+                        </span>
+                      )}
+
+                    </div>
+
+                    <div>
+
+                      <p className="font-medium text-secondary-800">
+                        {quote.designer?.name ||
+                          'Designer'}
+                      </p>
+
+                      <p className="text-sm text-gray-600">
+                        {quote.designer?.specialization ||
+                          ''}
+                      </p>
+
+                    </div>
+
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+
+                    <div>
+                      <p className="text-sm text-gray-500">
+                        Subtotal
+                      </p>
+
+                      <p className="font-medium">
+                        {formatCurrency(
+                          quote.subtotal
+                        )}
                       </p>
                     </div>
-                    <div className="text-right">
-                      <p className="text-2xl font-bold text-primary-600">{formatCurrency(quote.total_amount)}</p>
-                      <div className="flex items-center justify-end space-x-2 text-sm text-gray-500 mt-1">
-                        <Calendar className="w-4 h-4" />
-                        <span>Valid until: {new Date(quote.valid_until).toLocaleDateString()}</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {quote.description && (
-                    <p className="text-gray-600 mb-4">{quote.description}</p>
-                  )}
-                  
-                  <div className="flex items-center space-x-4 text-sm text-gray-600">
-                    <div className="flex items-center space-x-1">
-                      <Clock className="w-4 h-4" />
-                      <span>Created: {quote.created_at ? new Date(quote.created_at).toLocaleDateString() : 'N/A'}</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <FileText className="w-4 h-4" />
-                      <span>{quote.items?.length || 0} items</span>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="p-6 bg-gray-50">
-                  <div className="flex items-center space-x-3 mb-4">
-                    <div className="w-10 h-10 bg-primary-500 rounded-full flex items-center justify-center">
-                      {quote.designer?.profile_image ? (
-                        <img src={quote.designer.profile_image} alt={quote.designer.name} className="w-10 h-10 rounded-full object-cover" />
-                      ) : (
-                        <span className="text-white font-semibold">{quote.designer?.name?.charAt(0) || 'D'}</span>
-                      )}
-                    </div>
-                    <div>
-                      <p className="font-medium text-secondary-800">{quote.designer?.name}</p>
-                      <p className="text-sm text-gray-600">{quote.designer?.specialization}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <p className="text-sm text-gray-500">Subtotal</p>
-                      <p className="font-medium">{formatCurrency(quote.subtotal)}</p>
-                    </div>
+
                     {quote.discount_amount > 0 && (
                       <div>
-                        <p className="text-sm text-gray-500">Discount</p>
-                        <p className="font-medium text-green-600">-{formatCurrency(quote.discount_amount)}</p>
+                        <p className="text-sm text-gray-500">
+                          Discount
+                        </p>
+
+                        <p className="font-medium text-green-600">
+                          -
+                          {formatCurrency(
+                            quote.discount_amount
+                          )}
+                        </p>
                       </div>
                     )}
+
                     <div>
-                      <p className="text-sm text-gray-500">Tax ({quote.tax_rate}%)</p>
-                      <p className="font-medium">{formatCurrency(quote.tax_amount)}</p>
+                      <p className="text-sm text-gray-500">
+                        Tax ({quote.tax_rate}%)
+                      </p>
+
+                      <p className="font-medium">
+                        {formatCurrency(
+                          quote.tax_amount
+                        )}
+                      </p>
                     </div>
+
                     <div>
-                      <p className="text-sm text-gray-500 font-medium">Total Amount</p>
-                      <p className="text-lg font-bold text-primary-600">{formatCurrency(quote.total_amount)}</p>
+                      <p className="text-sm text-gray-500 font-medium">
+                        Total Amount
+                      </p>
+
+                      <p className="text-lg font-bold text-primary-600">
+                        {formatCurrency(
+                          quote.total_amount
+                        )}
+                      </p>
                     </div>
+
                   </div>
-                  
+
+                  {/* Buttons */}
                   <div className="flex space-x-3">
-                    {quote.status === 'sent' && !quote.customer_accepted && (
-                      <>
-                        <button 
-                          onClick={() => setSelectedQuote(quote)}
+
+                    {quote.status === 'sent' &&
+                      !quote.customer_accepted && (
+                        <button
+                          onClick={() =>
+                            setSelectedQuote(
+                              quote
+                            )
+                          }
                           className="flex-1 bg-primary-500 hover:bg-primary-600 text-white py-2 px-4 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2"
                         >
                           <Eye className="w-4 h-4" />
-                          <span>Review & Respond</span>
+
+                          <span>
+                            Review & Respond
+                          </span>
                         </button>
-                      </>
-                    )}
-                    
-                    {(quote.status === 'accepted' || quote.customer_accepted) && (
+                      )}
+
+                    {(quote.status === 'accepted' ||
+                      quote.customer_accepted) && (
                       <>
                         <button
-                          onClick={() => setSelectedQuote(quote)}
+                          onClick={() =>
+                            setSelectedQuote(
+                              quote
+                            )
+                          }
                           className="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2"
                         >
                           <CheckCircle className="w-4 h-4" />
-                          <span>View Accepted Quote</span>
+
+                          <span>
+                            View Accepted Quote
+                          </span>
                         </button>
-                        {/* Only show Assign Designer if project doesn't have assigned_designer_id */}
+
                         {!quote.assigned_designer_id && (
                           <button
                             onClick={async () => {
-                              // Fetch full project data
-                              const { data: fullProject, error } = await supabase
+                              const {
+                                data: fullProject,
+                                error: projectError
+                              } = await supabase
                                 .from('customers')
                                 .select('*')
-                                .eq('id', quote.project_id)
+                                .eq(
+                                  'id',
+                                  quote.project_id
+                                )
                                 .maybeSingle();
 
-                              if (error) {
-                                console.error('Error fetching project:', error);
-                                setError('Failed to load project data');
+                              if (projectError) {
+                                console.error(
+                                  'Error fetching project:',
+                                  projectError
+                                );
+
+                                setError(
+                                  'Failed to load project data'
+                                );
+
                                 return;
                               }
 
                               if (fullProject) {
-                                setSelectedProjectForAssignment(fullProject);
-                                setShowAssignModal(true);
+                                setSelectedProjectForAssignment(
+                                  fullProject as Project
+                                );
+
+                                setShowAssignModal(
+                                  true
+                                );
                               }
                             }}
                             className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2"
                           >
                             <UserCheck className="w-4 h-4" />
-                            <span>Assign Designer</span>
+
+                            <span>
+                              Assign Designer
+                            </span>
                           </button>
                         )}
                       </>
                     )}
-                    
+
                     {quote.status === 'rejected' && (
                       <button
-                        onClick={() => setSelectedQuote(quote)}
+                        onClick={() =>
+                          setSelectedQuote(
+                            quote
+                          )
+                        }
                         className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2"
                       >
                         <XCircle className="w-4 h-4" />
-                        <span>Rejected Quote</span>
+
+                        <span>
+                          Rejected Quote
+                        </span>
                       </button>
                     )}
-                    
+
                     <button
-                      onClick={() => window.open(`/view-quote/${quote.project_id}?id=${quote.id}`, '_blank')}
+                      onClick={() =>
+                        window.open(
+                          `/view-quote/${quote.project_id}?id=${quote.id}`,
+                          '_blank'
+                        )
+                      }
                       className="bg-secondary-500 hover:bg-secondary-600 text-white py-2 px-4 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2"
                     >
                       <Download className="w-4 h-4" />
-                      <span>Download</span>
+
+                      <span>
+                        Download
+                      </span>
                     </button>
+
                   </div>
+
                 </div>
+
               </div>
             ))}
+
           </div>
         )}
+
       </div>
 
-      {/* Quote Review Modal */}
+      {/* Review Quote Modal */}
       {selectedQuote && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-secondary-800">Review Quote</h2>
+
+          <div className="bg-white rounded-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+
+            {/* Modal Header */}
+            <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex items-center justify-between z-10">
+
+              <h2 className="text-2xl font-bold text-secondary-800">
+                Review Quote
+              </h2>
+
               <button
                 onClick={() => {
                   setSelectedQuote(null);
@@ -719,268 +1248,721 @@ console.log('======================================');
               >
                 <XCircle className="w-6 h-6" />
               </button>
+
             </div>
 
             <div className="p-6">
+
+              {/* Quote Information */}
               <div className="mb-6">
+
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-xl font-semibold text-secondary-800">{selectedQuote.title}</h3>
-                  <span className="text-2xl font-bold text-primary-600">{formatCurrency(selectedQuote.total_amount)}</span>
+
+                  <h3 className="text-xl font-semibold text-secondary-800">
+                    {selectedQuote.title}
+                  </h3>
+
+                  <span className="text-2xl font-bold text-primary-600">
+                    {formatCurrency(
+                      selectedQuote.total_amount
+                    )}
+                  </span>
+
                 </div>
-                <p className="text-gray-600">{selectedQuote.description}</p>
+
+                <p className="text-gray-600">
+                  {selectedQuote.description ||
+                    'No description provided.'}
+                </p>
+
                 <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500">
+
                   <div className="flex items-center space-x-1">
                     <Calendar className="w-4 h-4" />
-                    <span>Created: {new Date(selectedQuote.created_at).toLocaleDateString()}</span>
+
+                    <span>
+                      Created:{' '}
+                      {selectedQuote.created_at
+                        ? new Date(
+                            selectedQuote.created_at
+                          ).toLocaleDateString()
+                        : 'N/A'}
+                    </span>
                   </div>
+
                   <div className="flex items-center space-x-1">
                     <Clock className="w-4 h-4" />
-                    <span>Valid until: {new Date(selectedQuote.valid_until).toLocaleDateString()}</span>
+
+                    <span>
+                      Valid until:{' '}
+                      {selectedQuote.valid_until
+                        ? new Date(
+                            selectedQuote.valid_until
+                          ).toLocaleDateString()
+                        : 'N/A'}
+                    </span>
                   </div>
+
                 </div>
+
               </div>
 
+              {/* Designer Information */}
               <div className="mb-6">
-                
-                <h4 className="font-semibold text-secondary-800 mb-3">Designer Information</h4>
+
+                <h4 className="font-semibold text-secondary-800 mb-3">
+                  Designer Information
+                </h4>
+
                 <div className="flex items-center space-x-3">
+
                   <div className="w-10 h-10 bg-primary-500 rounded-full flex items-center justify-center">
+
                     {selectedQuote.designer?.profile_image ? (
-                      <img 
-                        src={selectedQuote.designer.profile_image} 
-                        alt={selectedQuote.designer.name}
+                      <img
+                        src={
+                          selectedQuote.designer
+                            .profile_image
+                        }
+                        alt={
+                          selectedQuote.designer.name
+                        }
                         className="w-10 h-10 rounded-full object-cover"
                       />
                     ) : (
                       <span className="text-white font-semibold">
-                        {selectedQuote.designer?.name?.charAt(0) || 'D'}
+                        {selectedQuote.designer?.name?.charAt(
+                          0
+                        ) || 'D'}
                       </span>
                     )}
+
                   </div>
+
                   <div>
-                    <p className="font-medium text-secondary-800">{selectedQuote.designer?.name}</p>
-                    <p className="text-sm text-gray-600">{selectedQuote.designer?.specialization}</p>
+
+                    <p className="font-medium text-secondary-800">
+                      {selectedQuote.designer?.name ||
+                        'Designer'}
+                    </p>
+
+                    <p className="text-sm text-gray-600">
+                      {selectedQuote.designer
+                        ?.specialization || ''}
+                    </p>
+
                     <div className="flex items-center space-x-4 mt-1 text-xs text-gray-500">
-                      <span>{selectedQuote.designer?.email}</span>
+
+                      {selectedQuote.designer?.email && (
+                        <span>
+                          {
+                            selectedQuote
+                              .designer.email
+                          }
+                        </span>
+                      )}
+
                       {selectedQuote.designer?.phone && (
                         <>
                           <span>•</span>
-                          <span>{selectedQuote.designer?.phone}</span>
+
+                          <span>
+                            {
+                              selectedQuote
+                                .designer.phone
+                            }
+                          </span>
                         </>
                       )}
+
                     </div>
+
                   </div>
+
                 </div>
+
               </div>
 
+              {/* 2D Design */}
               {selectedQuote.design_image_url && (
                 <div className="mb-6">
+
                   <div className="flex items-center justify-between mb-3">
-                    <h4 className="font-semibold text-secondary-800">2D Design</h4>
+
+                    <h4 className="font-semibold text-secondary-800">
+                      2D Design
+                    </h4>
+
                     <button
-                      onClick={() => downloadFileFromStorage(selectedQuote.design_image_url!, `2d-design-${selectedQuote.quote_number}.png`)}
+                      onClick={() =>
+                        downloadFileFromStorage(
+                          selectedQuote.design_image_url!,
+                          `2d-design-${selectedQuote.quote_number}.png`
+                        )
+                      }
                       className="flex items-center space-x-2 bg-primary-500 hover:bg-primary-600 text-white px-3 py-1.5 rounded-lg font-medium transition-colors text-sm"
                     >
                       <Download className="w-4 h-4" />
-                      <span>Download Design</span>
+
+                      <span>
+                        Download Design
+                      </span>
                     </button>
+
                   </div>
+
                   <p className="text-xs text-gray-500 mt-2">
-                    This design was created using our 2D design tool to help you visualize the proposed layout. Use the download button to save it.
+                    This design was created using our 2D
+                    design tool to help you visualize the
+                    proposed layout. Use the download
+                    button to save it.
                   </p>
+
                 </div>
               )}
 
+              {/* Quote Items */}
               <div className="mb-6">
-                <h4 className="font-semibold text-secondary-800 mb-3">Quote Items</h4>
+
+                <h4 className="font-semibold text-secondary-800 mb-3">
+                  Quote Items
+                </h4>
+
                 <div className="overflow-x-auto">
-                  <table className="w-full">
+
+                  <table className="w-full min-w-[1100px] border-collapse">
+
                     <thead className="bg-gray-50">
-                      {selectedQuote.items && selectedQuote.items.length > 0 ? (
-                        <tr>
-                          <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Item</th>
-                          <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Description</th>
-                          <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Units</th>
-                          <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Total Measurement</th>
-                          <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Width</th>
-                          <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Height</th>
-                          <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Depth</th>
-                          <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Unit Price</th>
-                          <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Amount</th>
-                        </tr>
-                      ) : (
-                        <tr>
-                          <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">No items available</th>
-                        </tr>
-                      )}
+
+                      <tr>
+
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 whitespace-nowrap">
+                          Item
+                        </th>
+
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 min-w-[220px]">
+                          Description
+                        </th>
+
+                        <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700 whitespace-nowrap">
+                          Units
+                        </th>
+
+                        <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700 whitespace-nowrap">
+                          Total Measurement
+                        </th>
+
+                        <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700 whitespace-nowrap">
+                          Width
+                        </th>
+
+                        <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700 whitespace-nowrap">
+                          Height
+                        </th>
+
+                        <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700 whitespace-nowrap">
+                          Depth
+                        </th>
+
+                        <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700 whitespace-nowrap">
+                          Unit Price
+                        </th>
+
+                        <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700 whitespace-nowrap">
+                          Amount
+                        </th>
+
+                      </tr>
+
                     </thead>
+
                     <tbody className="divide-y divide-gray-100">
-                      {selectedQuote.items && selectedQuote.items.filter((i: any) => i.section !== 'modular').length > 0 && (
+
+                      {/* On-Site Work */}
+                      {selectedQuote.items
+                        .filter(
+                          item =>
+                            item.section !==
+                            'modular'
+                        )
+                        .length > 0 && (
                         <>
                           <tr className="bg-primary-50">
-                            <td colSpan={9} className="py-2 px-4 font-semibold text-primary-700 text-sm">On-Site Work</td>
+
+                            <td
+                              colSpan={9}
+                              className="py-2 px-4 font-semibold text-primary-700 text-sm"
+                            >
+                              On-Site Work
+                            </td>
+
                           </tr>
-                          {selectedQuote.items.filter((i: any) => i.section !== 'modular').map((item: any) => (
-                            <tr key={item.id} className="hover:bg-gray-50">
-                              <td className="py-3 px-4 text-sm font-medium text-gray-800">{item.name}</td>
-                              <td className="py-3 px-4 text-sm text-gray-600">{item.description || '-'}</td>
-                              <td className="py-3 px-4 text-sm text-gray-600 text-right">{item.number_of_units || 1}</td>
-                              <td className="py-3 px-4 text-sm text-gray-600 text-right">{item.quantity} {item.unit}</td>
-                              <td className="py-3 px-4 text-sm text-gray-600 text-right">{(item.width ?? item.length) ? (item.width ?? item.length) : '-'}</td>
-                              <td className="py-3 px-4 text-sm text-gray-600 text-right">{(item.height ?? item.breadth) ? (item.height ?? item.breadth) : '-'}</td>
-                              <td className="py-3 px-4 text-sm text-gray-600 text-right">{item.depth ? item.depth : '-'}</td>
-                              <td className="py-3 px-4 text-sm text-gray-600 text-right">{formatCurrency(item.unit_price)}</td>
-                              <td className="py-3 px-4 text-sm font-medium text-gray-800 text-right">{formatCurrency(item.amount)}</td>
-                            </tr>
-                          ))}
+
+                          {selectedQuote.items
+                            .filter(
+                              item =>
+                                item.section !==
+                                'modular'
+                            )
+                            .map(item => (
+
+                              <tr
+                                key={item.id}
+                                className="hover:bg-gray-50"
+                              >
+
+                                <td className="py-3 px-4 text-sm font-medium text-gray-800">
+                                  {item.name ||
+                                    '-'}
+                                </td>
+
+                                <td className="py-3 px-4 text-sm text-gray-600">
+                                  {item.description ||
+                                    '-'}
+                                </td>
+
+                                <td className="py-3 px-4 text-sm text-gray-600 text-right">
+                                  {item.number_of_units ??
+                                    1}
+                                </td>
+
+                                <td className="py-3 px-4 text-sm text-gray-600 text-right">
+                                  {item.quantity ??
+                                    0}{' '}
+                                  {item.unit ||
+                                    ''}
+                                </td>
+
+                                <td className="py-3 px-4 text-sm text-gray-600 text-right">
+                                  {item.width ??
+                                    item.length ??
+                                    '-'}
+                                </td>
+
+                                <td className="py-3 px-4 text-sm text-gray-600 text-right">
+                                  {item.height ??
+                                    item.breadth ??
+                                    '-'}
+                                </td>
+
+                                <td className="py-3 px-4 text-sm text-gray-600 text-right">
+                                  {item.depth ??
+                                    '-'}
+                                </td>
+
+                                <td className="py-3 px-4 text-sm text-gray-600 text-right whitespace-nowrap">
+                                  {formatCurrency(
+                                    item.unit_price
+                                  )}
+                                </td>
+
+                                <td className="py-3 px-4 text-sm font-medium text-gray-800 text-right whitespace-nowrap">
+                                  {formatCurrency(
+                                    item.amount
+                                  )}
+                                </td>
+
+                              </tr>
+
+                            ))}
                         </>
                       )}
-                      {selectedQuote.items && selectedQuote.items.filter((i: any) => i.section === 'modular').length > 0 && (
+
+                      {/* Modular Work */}
+                      {selectedQuote.items
+                        .filter(
+                          item =>
+                            item.section ===
+                            'modular'
+                        )
+                        .length > 0 && (
                         <>
                           <tr className="bg-primary-50">
-                            <td colSpan={9} className="py-2 px-4 font-semibold text-primary-700 text-sm">Modular Work</td>
+
+                            <td
+                              colSpan={9}
+                              className="py-2 px-4 font-semibold text-primary-700 text-sm"
+                            >
+                              Modular Work
+                            </td>
+
                           </tr>
-                          {selectedQuote.items.filter((i: any) => i.section === 'modular').map((item: any) => (
-                            <tr key={item.id} className="hover:bg-gray-50">
-                              <td className="py-3 px-4 text-sm font-medium text-gray-800">{item.name}</td>
-                              <td className="py-3 px-4 text-sm text-gray-600">{item.description || '-'}</td>
-                              <td className="py-3 px-4 text-sm text-gray-600 text-right">{item.number_of_units || 1}</td>
-                              <td className="py-3 px-4 text-sm text-gray-600 text-right">{item.area_sqft ?? 0} sq ft</td>
-                              <td className="py-3 px-4 text-sm text-gray-600 text-right">{item.width ? `${item.width} ${item.width_unit || ''}` : '-'}</td>
-                              <td className="py-3 px-4 text-sm text-gray-600 text-right">{item.height ? `${item.height} ${item.height_unit || ''}` : '-'}</td>
-                              <td className="py-3 px-4 text-sm text-gray-600 text-right">{item.depth ? `${item.depth} ${item.depth_unit || ''}` : '-'}</td>
-                              <td className="py-3 px-4 text-sm text-gray-600 text-right">{formatCurrency(item.per_sqft_rate ?? item.unit_price)}/sq ft</td>
-                              <td className="py-3 px-4 text-sm font-medium text-gray-800 text-right">{formatCurrency(item.amount)}</td>
-                            </tr>
-                          ))}
+
+                          {selectedQuote.items
+                            .filter(
+                              item =>
+                                item.section ===
+                                'modular'
+                            )
+                            .map(item => (
+
+                              <tr
+                                key={item.id}
+                                className="hover:bg-gray-50"
+                              >
+
+                                <td className="py-3 px-4 text-sm font-medium text-gray-800">
+                                  {item.name ||
+                                    '-'}
+                                </td>
+
+                                <td className="py-3 px-4 text-sm text-gray-600">
+                                  {item.description ||
+                                    '-'}
+                                </td>
+
+                                <td className="py-3 px-4 text-sm text-gray-600 text-right">
+                                  {item.number_of_units ??
+                                    1}
+                                </td>
+
+                                <td className="py-3 px-4 text-sm text-gray-600 text-right whitespace-nowrap">
+                                  {item.area_sqft ??
+                                    0}{' '}
+                                  sq ft
+                                </td>
+
+                                <td className="py-3 px-4 text-sm text-gray-600 text-right">
+                                  {item.width !=
+                                  null
+                                    ? `${item.width} ${
+                                        item.width_unit ||
+                                        ''
+                                      }`
+                                    : '-'}
+                                </td>
+
+                                <td className="py-3 px-4 text-sm text-gray-600 text-right">
+                                  {item.height !=
+                                  null
+                                    ? `${item.height} ${
+                                        item.height_unit ||
+                                        ''
+                                      }`
+                                    : '-'}
+                                </td>
+
+                                <td className="py-3 px-4 text-sm text-gray-600 text-right">
+                                  {item.depth !=
+                                  null
+                                    ? `${item.depth} ${
+                                        item.depth_unit ||
+                                        ''
+                                      }`
+                                    : '-'}
+                                </td>
+
+                                <td className="py-3 px-4 text-sm text-gray-600 text-right whitespace-nowrap">
+                                  {formatCurrency(
+                                    item.per_sqft_rate ??
+                                      item.unit_price
+                                  )}
+                                  /sq ft
+                                </td>
+
+                                <td className="py-3 px-4 text-sm font-medium text-gray-800 text-right whitespace-nowrap">
+                                  {formatCurrency(
+                                    item.amount
+                                  )}
+                                </td>
+
+                              </tr>
+
+                            ))}
                         </>
                       )}
-                      {(!selectedQuote.items || selectedQuote.items.length === 0) && (
+
+                      {/* No Items */}
+                      {selectedQuote.items.length ===
+                        0 && (
                         <tr>
-                          <td colSpan={9} className="py-3 px-4 text-sm text-gray-500 text-center">No items available for this quote</td>
+
+                          <td
+                            colSpan={9}
+                            className="py-6 px-4 text-sm text-gray-500 text-center"
+                          >
+                            No items available for
+                            this quote
+                          </td>
+
                         </tr>
                       )}
+
                     </tbody>
+
+                    {/* Totals */}
                     <tfoot className="bg-gray-50">
+
                       <tr>
-                        <td colSpan={8} className="py-3 px-4 text-sm font-semibold text-gray-700 text-right">Subtotal</td>
-                        <td className="py-3 px-4 text-sm font-semibold text-gray-700 text-right">{formatCurrency(selectedQuote.subtotal)}</td>
+
+                        <td
+                          colSpan={8}
+                          className="py-3 px-4 text-sm font-semibold text-gray-700 text-right"
+                        >
+                          Subtotal
+                        </td>
+
+                        <td className="py-3 px-4 text-sm font-semibold text-gray-700 text-right">
+                          {formatCurrency(
+                            selectedQuote.subtotal
+                          )}
+                        </td>
+
                       </tr>
-                      {selectedQuote.discount_amount > 0 && (
+
+                      {selectedQuote.discount_amount >
+                        0 && (
                         <tr>
-                          <td colSpan={8} className="py-3 px-4 text-sm font-semibold text-gray-700 text-right">Discount</td>
-                          <td className="py-3 px-4 text-sm font-semibold text-green-600 text-right">-{formatCurrency(selectedQuote.discount_amount)}</td>
+
+                          <td
+                            colSpan={8}
+                            className="py-3 px-4 text-sm font-semibold text-gray-700 text-right"
+                          >
+                            Discount
+                          </td>
+
+                          <td className="py-3 px-4 text-sm font-semibold text-green-600 text-right">
+                            -
+                            {formatCurrency(
+                              selectedQuote.discount_amount
+                            )}
+                          </td>
+
                         </tr>
                       )}
+
                       <tr>
-                        <td colSpan={8} className="py-3 px-4 text-sm font-semibold text-gray-700 text-right">Tax ({selectedQuote.tax_rate}%)</td>
-                        <td className="py-3 px-4 text-sm font-semibold text-gray-700 text-right">{formatCurrency(selectedQuote.tax_amount)}</td>
+
+                        <td
+                          colSpan={8}
+                          className="py-3 px-4 text-sm font-semibold text-gray-700 text-right"
+                        >
+                          Tax ({selectedQuote.tax_rate}%)
+                        </td>
+
+                        <td className="py-3 px-4 text-sm font-semibold text-gray-700 text-right">
+                          {formatCurrency(
+                            selectedQuote.tax_amount
+                          )}
+                        </td>
+
                       </tr>
+
                       <tr>
-                        <td colSpan={8} className="py-3 px-4 text-base font-bold text-secondary-800 text-right">Total</td>
-                        <td className="py-3 px-4 text-base font-bold text-primary-600 text-right">{formatCurrency(selectedQuote.total_amount)}</td>
+
+                        <td
+                          colSpan={8}
+                          className="py-3 px-4 text-base font-bold text-secondary-800 text-right"
+                        >
+                          Total
+                        </td>
+
+                        <td className="py-3 px-4 text-base font-bold text-primary-600 text-right">
+                          {formatCurrency(
+                            selectedQuote.total_amount
+                          )}
+                        </td>
+
                       </tr>
+
                     </tfoot>
+
                   </table>
+
                 </div>
+
               </div>
 
+              {/* Terms */}
               {selectedQuote.terms_and_conditions && (
                 <div className="mb-6">
-                  <h4 className="font-semibold text-secondary-800 mb-3">Terms & Conditions</h4>
-                  <div className="bg-gray-50 p-4 rounded-lg text-sm text-gray-600">
-                    {selectedQuote.terms_and_conditions}
-                  </div>
-                </div>
-              )}
 
-              {/* Payment Receipt Display (for accepted quotes) */}
-              {selectedQuote.customer_accepted && selectedQuote.payment_receipt_url && (
-                <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4">
-                  <h4 className="font-semibold text-secondary-800 mb-3 flex items-center space-x-2">
-                    <Paperclip className="w-4 h-4" />
-                    <span>Payment Receipt</span>
+                  <h4 className="font-semibold text-secondary-800 mb-3">
+                    Terms & Conditions
                   </h4>
-                  <div className="flex items-center justify-between bg-white rounded-lg p-3 border border-gray-200">
-                    <div className="flex items-center space-x-2">
-                      <FileText className="w-5 h-5 text-green-600" />
-                      <span className="text-sm text-gray-700">Payment transaction receipt attached</span>
-                    </div>
-                    <a
-                      href={selectedQuote.payment_receipt_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center space-x-1 text-primary-600 hover:text-primary-700 text-sm font-medium"
-                    >
-                      <Download className="w-4 h-4" />
-                      <span>View/Download</span>
-                    </a>
+
+                  <div className="bg-gray-50 p-4 rounded-lg text-sm text-gray-600">
+                    {
+                      selectedQuote
+                        .terms_and_conditions
+                    }
                   </div>
+
                 </div>
               )}
 
-              {/* Payment Receipt Upload (for pending quotes) */}
-              {selectedQuote.status !== 'accepted' && selectedQuote.status !== 'rejected' && !selectedQuote.customer_accepted && (
-                <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center space-x-2">
-                    <Paperclip className="w-4 h-4" />
-                    <span>Payment Transaction Receipt (Optional but Recommended)</span>
-                  </label>
-                  <p className="text-xs text-gray-600 mb-3">
-                    Upload a screenshot or photo of your payment confirmation to keep a record with this quotation.
-                  </p>
-                  <div className="flex items-center space-x-3">
-                    <label className="flex-1">
-                      <input
-                        type="file"
-                        accept="image/*,.pdf"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            // Check file size (max 10MB)
-                            if (file.size > 10 * 1024 * 1024) {
-                              setError('File size must be less than 10MB');
-                              e.target.value = '';
+              {/* Payment Receipt - Display */}
+              {selectedQuote.customer_accepted &&
+                selectedQuote.payment_receipt_url && (
+                  <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4">
+
+                    <h4 className="font-semibold text-secondary-800 mb-3 flex items-center space-x-2">
+
+                      <Paperclip className="w-4 h-4" />
+
+                      <span>
+                        Payment Receipt
+                      </span>
+
+                    </h4>
+
+                    <div className="flex items-center justify-between bg-white rounded-lg p-3 border border-gray-200">
+
+                      <div className="flex items-center space-x-2">
+
+                        <FileText className="w-5 h-5 text-green-600" />
+
+                        <span className="text-sm text-gray-700">
+                          Payment transaction
+                          receipt attached
+                        </span>
+
+                      </div>
+
+                      <a
+                        href={
+                          selectedQuote.payment_receipt_url
+                        }
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center space-x-1 text-primary-600 hover:text-primary-700 text-sm font-medium"
+                      >
+                        <Download className="w-4 h-4" />
+
+                        <span>
+                          View/Download
+                        </span>
+                      </a>
+
+                    </div>
+
+                  </div>
+                )}
+
+              {/* Payment Receipt Upload */}
+              {selectedQuote.status !==
+                'accepted' &&
+                selectedQuote.status !==
+                  'rejected' &&
+                !selectedQuote.customer_accepted && (
+                  <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+
+                    <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center space-x-2">
+
+                      <Paperclip className="w-4 h-4" />
+
+                      <span>
+                        Payment Transaction Receipt
+                        (Optional but Recommended)
+                      </span>
+
+                    </label>
+
+                    <p className="text-xs text-gray-600 mb-3">
+                      Upload a screenshot or photo of
+                      your payment confirmation to keep
+                      a record with this quotation.
+                    </p>
+
+                    <div className="flex items-center space-x-3">
+
+                      <label className="flex-1">
+
+                        <input
+                          type="file"
+                          accept="image/*,.pdf"
+                          onChange={event => {
+                            const file =
+                              event.target.files?.[0];
+
+                            if (!file) {
                               return;
                             }
-                            setPaymentReceiptFile(file);
-                          }
-                        }}
-                        className="hidden"
-                        id="payment-receipt-upload"
-                      />
-                      <div className="flex items-center justify-center space-x-2 bg-white border-2 border-dashed border-gray-300 rounded-lg px-4 py-3 hover:border-primary-500 cursor-pointer transition-colors">
-                        <Upload className="w-5 h-5 text-gray-400" />
-                        <span className="text-sm text-gray-600">
-                          {paymentReceiptFile ? paymentReceiptFile.name : 'Choose file or drag here'}
-                        </span>
-                      </div>
-                    </label>
-                    {paymentReceiptFile && (
-                      <button
-                        onClick={() => setPaymentReceiptFile(null)}
-                        className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                        title="Remove file"
-                      >
-                        <XCircle className="w-5 h-5" />
-                      </button>
-                    )}
-                  </div>
-                  {uploadingReceipt && (
-                    <div className="mt-2 flex items-center space-x-2 text-sm text-blue-600">
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Uploading payment receipt...</span>
-                    </div>
-                  )}
-                </div>
-              )}
 
-              {selectedQuote.status === 'accepted' || selectedQuote.customer_accepted ? (
+                            if (
+                              file.size >
+                              10 * 1024 * 1024
+                            ) {
+                              setError(
+                                'File size must be less than 10MB'
+                              );
+
+                              event.target.value =
+                                '';
+
+                              return;
+                            }
+
+                            setPaymentReceiptFile(
+                              file
+                            );
+                          }}
+                          className="hidden"
+                          id="payment-receipt-upload"
+                        />
+
+                        <div className="flex items-center justify-center space-x-2 bg-white border-2 border-dashed border-gray-300 rounded-lg px-4 py-3 hover:border-primary-500 cursor-pointer transition-colors">
+
+                          <Upload className="w-5 h-5 text-gray-400" />
+
+                          <span className="text-sm text-gray-600">
+                            {paymentReceiptFile
+                              ? paymentReceiptFile.name
+                              : 'Choose file or drag here'}
+                          </span>
+
+                        </div>
+
+                      </label>
+
+                      {paymentReceiptFile && (
+                        <button
+                          onClick={() =>
+                            setPaymentReceiptFile(
+                              null
+                            )
+                          }
+                          className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Remove file"
+                        >
+                          <XCircle className="w-5 h-5" />
+                        </button>
+                      )}
+
+                    </div>
+
+                    {uploadingReceipt && (
+                      <div className="mt-2 flex items-center space-x-2 text-sm text-blue-600">
+
+                        <Loader2 className="w-4 h-4 animate-spin" />
+
+                        <span>
+                          Uploading payment receipt...
+                        </span>
+
+                      </div>
+                    )}
+
+                  </div>
+                )}
+
+              {/* Bottom Actions */}
+              {selectedQuote.status ===
+                'accepted' ||
+              selectedQuote.customer_accepted ? (
                 <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+
                   <div className="flex items-center space-x-2 text-green-700 bg-green-50 border border-green-200 rounded-lg px-4 py-3 flex-1 mr-3">
+
                     <ThumbsUp className="w-5 h-5" />
-                    <span className="font-medium">This quote has been accepted. No further action is needed.</span>
+
+                    <span className="font-medium">
+                      This quote has been accepted.
+                      No further action is needed.
+                    </span>
+
                   </div>
+
                   <button
                     onClick={() => {
                       setSelectedQuote(null);
@@ -991,13 +1973,24 @@ console.log('======================================');
                   >
                     Close
                   </button>
+
                 </div>
-              ) : selectedQuote.status === 'rejected' ? (
+              ) : selectedQuote.status ===
+                'rejected' ? (
+
                 <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+
                   <div className="flex items-center space-x-2 text-red-700 bg-red-50 border border-red-200 rounded-lg px-4 py-3 flex-1 mr-3">
+
                     <ThumbsDown className="w-5 h-5" />
-                    <span className="font-medium">This quote has been rejected and cannot be changed.</span>
+
+                    <span className="font-medium">
+                      This quote has been rejected and
+                      cannot be changed.
+                    </span>
+
                   </div>
+
                   <button
                     onClick={() => {
                       setSelectedQuote(null);
@@ -1008,21 +2001,36 @@ console.log('======================================');
                   >
                     Close
                   </button>
+
                 </div>
+
               ) : (
+
                 <>
+                  {/* Feedback */}
                   <div className="mb-6">
-                    <h4 className="font-semibold text-secondary-800 mb-3">Your Feedback</h4>
+
+                    <h4 className="font-semibold text-secondary-800 mb-3">
+                      Your Feedback
+                    </h4>
+
                     <textarea
                       value={feedbackText}
-                      onChange={(e) => setFeedbackText(e.target.value)}
+                      onChange={event =>
+                        setFeedbackText(
+                          event.target.value
+                        )
+                      }
                       rows={4}
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       placeholder="Add your comments or feedback about this quote (required for rejection)"
-                    ></textarea>
+                    />
+
                   </div>
 
+                  {/* Action Buttons */}
                   <div className="flex space-x-3 pt-4 border-t border-gray-200">
+
                     <button
                       onClick={() => {
                         setSelectedQuote(null);
@@ -1034,35 +2042,62 @@ console.log('======================================');
                     >
                       Close
                     </button>
+
                     <button
-                      onClick={() => handleRejectQuote(selectedQuote.id)}
-                      disabled={submitting || !feedbackText.trim()}
+                      onClick={() =>
+                        handleRejectQuote(
+                          selectedQuote.id
+                        )
+                      }
+                      disabled={
+                        submitting ||
+                        !feedbackText.trim()
+                      }
                       className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
                     >
+
                       {submitting ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
                       ) : (
                         <ThumbsDown className="w-4 h-4" />
                       )}
-                      <span>Reject Quote</span>
+
+                      <span>
+                        Reject Quote
+                      </span>
+
                     </button>
+
                     <button
-                      onClick={() => handleAcceptQuote(selectedQuote.id)}
+                      onClick={() =>
+                        handleAcceptQuote(
+                          selectedQuote.id
+                        )
+                      }
                       disabled={submitting}
                       className="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
                     >
+
                       {submitting ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
                       ) : (
                         <ThumbsUp className="w-4 h-4" />
                       )}
-                      <span>Accept Quote</span>
+
+                      <span>
+                        Accept Quote
+                      </span>
+
                     </button>
+
                   </div>
                 </>
               )}
+
             </div>
+
           </div>
+
         </div>
       )}
 
@@ -1072,11 +2107,16 @@ console.log('======================================');
           isOpen={showAssignModal}
           onClose={() => {
             setShowAssignModal(false);
-            setSelectedProjectForAssignment(null);
+            setSelectedProjectForAssignment(
+              null
+            );
           }}
-          project={selectedProjectForAssignment}
+          project={
+            selectedProjectForAssignment
+          }
         />
       )}
+
     </div>
   );
 };
