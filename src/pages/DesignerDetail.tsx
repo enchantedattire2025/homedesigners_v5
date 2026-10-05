@@ -578,7 +578,7 @@ const DesignerDetail = () => {
               {/* =================================================
                   UPDATED CONTACT DESIGNER CARD
               ================================================== */}
-              <div className="bg-white rounded-xl shadow-lg p-6 sticky top-24">
+             
 
                {/* Contact Designer Card */}
                 <div className="bg-white rounded-xl shadow-lg p-6 sticky top-24">
