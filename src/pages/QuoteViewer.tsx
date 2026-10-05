@@ -138,23 +138,13 @@ const QuoteViewer = () => {
 
       if (quoteError) throw quoteError;
 
-     const { data: itemsData, error: itemsError } = await supabase
-  .from('quote_items')
-  .select('*')
-  .eq('quote_id', quoteId)
-  .order('created_at', { ascending: true });
+      const { data: itemsData, error: itemsError } = await supabase
+        .from('quote_items')
+        .select('*')
+        .eq('quote_id', quoteId)
+        .order('created_at', { ascending: true });
 
-console.log("========================================");
-console.log("QUOTE VIEWER DEBUG");
-console.log("PROJECT ID:", projectId);
-console.log("QUOTE ID:", quoteId);
-console.log("QUOTE DATA:", quoteData);
-console.log("QUOTE ITEMS DATA:", itemsData);
-console.log("QUOTE ITEMS COUNT:", itemsData?.length ?? 0);
-console.log("QUOTE ITEMS ERROR:", itemsError);
-console.log("========================================");
-
-if (itemsError) throw itemsError;
+      if (itemsError) throw itemsError;
 
       setQuote({
         ...quoteData,
@@ -226,14 +216,7 @@ if (itemsError) throw itemsError;
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
           }
-          console.log("========== QUOTE VIEWER DEBUG ==========");
-console.log("Quote ID:", quoteId);
-console.log("Quote data:", quoteData);
-console.log("Quote items:", itemsData);
-console.log("Quote items count:", itemsData?.length ?? 0);
-console.log("Quote items error:", itemsError);
-console.log("========================================");
-          
+
           .print-quote-table {
             width: 100%;
             max-width: 100%;
@@ -244,27 +227,30 @@ console.log("========================================");
           .print-quote-table th,
           .print-quote-table td {
             min-width: 0;
-            overflow-wrap: anywhere;
-            word-break: break-word;
-            white-space: normal;
-            vertical-align: top;
+            box-sizing: border-box;
+            vertical-align: middle;
+            overflow-wrap: normal;
+            word-break: normal;
           }
 
           .print-quote-table th {
-            font-size: 10px;
+            font-size: 9px;
             line-height: 1.15;
+            white-space: nowrap;
+            padding: 8px 5px;
+            text-align: center;
           }
 
           .print-quote-table td {
-            font-size: 10px;
-            line-height: 1.25;
+            font-size: 9px;
+            line-height: 1.2;
+            padding: 8px 5px;
           }
 
-          .print-quote-table th,
-          .print-quote-table td {
-            box-sizing: border-box;
-          }
-
+          .print-quote-table th:nth-child(1),
+          .print-quote-table th:nth-child(2),
+          .print-quote-table th:nth-child(3),
+          .print-quote-table th:nth-child(6),
           .print-quote-table td:nth-child(1),
           .print-quote-table td:nth-child(2),
           .print-quote-table td:nth-child(3),
@@ -272,8 +258,28 @@ console.log("========================================");
             text-align: left;
           }
 
-          .print-quote-table th {
-            overflow: hidden;
+          .print-quote-table th:nth-child(n+4),
+          .print-quote-table td:nth-child(n+4) {
+            text-align: center;
+          }
+
+          .print-quote-table td:nth-child(1),
+          .print-quote-table td:nth-child(2) {
+            overflow-wrap: anywhere;
+            word-break: break-word;
+          }
+
+          .print-quote-table .quote-section-row td {
+            width: 100%;
+            padding: 7px 8px;
+            text-align: left !important;
+            white-space: nowrap;
+            font-size: 9px;
+          }
+
+          .print-quote-table .print-item-image {
+            display: block;
+            margin: 0 auto;
           }
 
           @media print {
@@ -326,17 +332,17 @@ console.log("========================================");
             #print-area .print-quote-table th,
             #print-area .print-quote-table td {
               padding: 3px 2px !important;
-              line-height: 1.3 !important;
+              line-height: 1.2 !important;
               white-space: normal !important;
               overflow: visible !important;
               overflow-wrap: anywhere !important;
               word-break: break-word !important;
-              vertical-align: top !important;
+              vertical-align: middle !important;
             }
 
             #print-area .print-quote-table th {
-              font-size: 8.5px !important;
-              line-height: 1.2 !important;
+              font-size: 7.5px !important;
+              line-height: 1.15 !important;
             }
 
             #print-area .print-quote-table .print-item-image {
@@ -491,17 +497,17 @@ console.log("========================================");
                 style={{ tableLayout: 'fixed', width: '100%' }}
               >
                 <colgroup>
-                  <col style={{ width: '10%' }} />
-                  <col style={{ width: '16%' }} />
+                  <col style={{ width: '11%' }} />
+                  <col style={{ width: '18%' }} />
                   <col style={{ width: '7%' }} />
                   <col style={{ width: '6%' }} />
                   <col style={{ width: '9%' }} />
+                  <col style={{ width: '6%' }} />
                   <col style={{ width: '7%' }} />
                   <col style={{ width: '7%' }} />
                   <col style={{ width: '7%' }} />
-                  <col style={{ width: '7%' }} />
-                  <col style={{ width: '10%' }} />
-                  <col style={{ width: '7%' }} />
+                  <col style={{ width: '9%' }} />
+                  <col style={{ width: '6%' }} />
                   <col style={{ width: '7%' }} />
                 </colgroup>
                 <thead className="bg-gray-100">
@@ -523,7 +529,7 @@ console.log("========================================");
                 <tbody>
                   {quote.items.filter(i => i.section !== 'modular').length > 0 && (
                     <>
-                      <tr className="bg-primary-50">
+                      <tr className="bg-primary-50 quote-section-row">
                         <td colSpan={12} className="py-2 px-4 font-semibold text-primary-700 text-sm border-b">On-Site Work</td>
                       </tr>
                       {quote.items.filter(i => i.section !== 'modular').map((item) => (
@@ -548,7 +554,7 @@ console.log("========================================");
                   )}
                   {quote.items.filter(i => i.section === 'modular').length > 0 && (
                     <>
-                      <tr className="bg-primary-50">
+                      <tr className="bg-primary-50 quote-section-row">
                         <td colSpan={12} className="py-2 px-4 font-semibold text-primary-700 text-sm border-b">Modular Work</td>
                       </tr>
                       {quote.items.filter(i => i.section === 'modular').map((item) => (
