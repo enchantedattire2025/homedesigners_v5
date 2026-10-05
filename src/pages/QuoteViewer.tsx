@@ -216,6 +216,13 @@ const QuoteViewer = () => {
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
           }
+          console.log("========== QUOTE VIEWER DEBUG ==========");
+console.log("Quote ID:", quoteId);
+console.log("Quote data:", quoteData);
+console.log("Quote items:", itemsData);
+console.log("Quote items count:", itemsData?.length ?? 0);
+console.log("Quote items error:", itemsError);
+console.log("========================================");
           
           .print-quote-table {
             width: 100%;
