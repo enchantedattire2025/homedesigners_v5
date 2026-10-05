@@ -186,6 +186,7 @@ const DesignerDetail = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto mb-4"></div>
+
           <p className="text-gray-600">
             Loading designer details...
           </p>
@@ -198,6 +199,7 @@ const DesignerDetail = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
+
           <div className="bg-red-50 border border-red-200 text-red-600 px-6 py-4 rounded-lg mb-4">
             <p className="font-medium">
               Error loading designer details
@@ -214,6 +216,7 @@ const DesignerDetail = () => {
           >
             Back to Designers
           </Link>
+
         </div>
       </div>
     );
@@ -254,6 +257,7 @@ const DesignerDetail = () => {
             {/* =====================================================
                 MAIN CONTENT
             ====================================================== */}
+
             <div className="lg:col-span-2 space-y-8">
 
               {/* Designer Info */}
@@ -414,9 +418,7 @@ const DesignerDetail = () => {
                           />
 
                           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-
                             <ExternalLink className="w-8 h-8 text-white" />
-
                           </div>
 
                         </div>
@@ -495,8 +497,7 @@ const DesignerDetail = () => {
                                     <Star
                                       key={i}
                                       className={`w-4 h-4 ${
-                                        i <
-                                        testimonial.rating
+                                        i < testimonial.rating
                                           ? 'text-yellow-400 fill-current'
                                           : 'text-gray-300'
                                       }`}
@@ -517,6 +518,7 @@ const DesignerDetail = () => {
                               )}
 
                             </div>
+
                           </div>
 
                           <span className="text-xs text-gray-500">
@@ -568,138 +570,184 @@ const DesignerDetail = () => {
                 )}
 
               </div>
+
             </div>
 
             {/* =====================================================
                 SIDEBAR
             ====================================================== */}
+
             <div className="space-y-6">
 
               {/* =================================================
-                  UPDATED CONTACT DESIGNER CARD
+                  CONTACT DESIGNER CARD
               ================================================== */}
-             
 
-               {/* Contact Designer Card */}
-                <div className="bg-white rounded-xl shadow-lg p-6 sticky top-24">
-                
-                  {/* Header */}
-                  <div className="pb-5 border-b border-gray-100">
-                    <h3 className="text-xl font-bold text-secondary-800">
-                      Contact Designer
-                    </h3>
-                
-                    <div className="mt-2 w-8 h-0.5 bg-primary-500 rounded-full"></div>
+              <div className="bg-white rounded-xl shadow-lg p-6 sticky top-24">
+
+                {/* Header */}
+                <div className="pb-5 border-b border-gray-100">
+
+                  <h3 className="text-xl font-bold text-secondary-800">
+                    Contact Designer
+                  </h3>
+
+                  <div className="mt-2 w-8 h-0.5 bg-primary-500 rounded-full"></div>
+
+                </div>
+
+                {/* Starting Price */}
+                {designer.starting_price && (
+                  <div className="py-5 border-b border-gray-100">
+
+                    <p className="text-sm font-medium text-gray-500 mb-1">
+                      Starting From
+                    </p>
+
+                    <p className="text-2xl font-bold text-primary-600 leading-none">
+                      {designer.starting_price}
+                    </p>
+
                   </div>
-                
-                  {/* Starting Price */}
-                  {designer.starting_price && (
-                    <div className="py-5 border-b border-gray-100">
-                
-                      <p className="text-sm font-medium text-gray-500 mb-1">
-                        Starting From
-                      </p>
-                
-                      <p className="text-2xl font-bold text-primary-600 leading-none">
-                        {designer.starting_price}
-                      </p>
-                
-                    </div>
-                  )}
-                
-                  {/* Contact Details */}
-                  {user ? (
-                    <div className="pt-4">
-                
-                      <div className="space-y-1">
-                
-                        {/* Phone */}
-                        {designer.phone && (
-                          <button
-                            type="button"
-                            onClick={() => handleContactAction('phone')}
-                            className="w-full flex items-center gap-3 px-2 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-primary-600 transition-all duration-200 text-left"
-                          >
-                            <span className="w-8 h-8 rounded-md bg-gray-50 flex items-center justify-center flex-shrink-0">
-                              <Phone className="w-4 h-4" />
-                            </span>
-                
-                            <span className="text-sm font-medium truncate">
-                              {designer.phone}
-                            </span>
-                          </button>
-                        )}
-                
-                        {/* Email */}
+                )}
+
+                {/* Contact Details */}
+                {user ? (
+                  <div className="pt-4">
+
+                    <div className="space-y-1">
+
+                      {/* Phone */}
+                      {designer.phone && (
                         <button
                           type="button"
-                          onClick={() => handleContactAction('email')}
+                          onClick={() =>
+                            handleContactAction('phone')
+                          }
                           className="w-full flex items-center gap-3 px-2 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-primary-600 transition-all duration-200 text-left"
                         >
+
                           <span className="w-8 h-8 rounded-md bg-gray-50 flex items-center justify-center flex-shrink-0">
-                            <Mail className="w-4 h-4" />
+                            <Phone className="w-4 h-4" />
                           </span>
-                
+
                           <span className="text-sm font-medium truncate">
-                            {designer.email}
+                            {designer.phone}
                           </span>
-                        </button>
-                
-                        {/* Instagram */}
-                        {designer.instagram_url && (
-                          <a
-                            href={designer.instagram_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="w-full flex items-center gap-3 px-2 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-pink-500 transition-all duration-200"
-                          >
-                            <span className="w-8 h-8 rounded-md bg-gray-50 flex items-center justify-center flex-shrink-0">
-                              <FaInstagram className="w-4 h-4" />
-                            </span>
-                
-                            <span className="text-sm font-medium">
-                              Instagram Portfolio
-                            </span>
-                          </a>
-                        )}
-                
-                      </div>
-                
-                      {/* Get Directions */}
-                      {designer.google_location_url && (
-                        <button
-                          type="button"
-                          onClick={handleGetDirections}
-                          className="w-full mt-5 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white py-2.5 px-4 rounded-lg font-semibold text-sm transition-all duration-200"
-                        >
-                          <Navigation className="w-4 h-4" />
-                          <span>Get Directions</span>
+
                         </button>
                       )}
-                
-                    </div>
-                  ) : (
-                    <div className="mt-5 bg-blue-50 border border-blue-200 rounded-lg p-4">
-                      <p className="text-blue-800 text-sm text-center leading-relaxed">
-                        Please sign in to view contact information and get in touch with this designer.
-                      </p>
-                    </div>
-                  )}
-                
-                  {/* Get Quote */}
-                  {user && !isDesigner && (
-                    <div className="mt-5 pt-5 border-t border-gray-100">
+
+                      {/* Email */}
                       <button
                         type="button"
-                        onClick={handleGetQuote}
-                        className="w-full btn-primary"
+                        onClick={() =>
+                          handleContactAction('email')
+                        }
+                        className="w-full flex items-center gap-3 px-2 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-primary-600 transition-all duration-200 text-left"
                       >
-                        Get Quote
+
+                        <span className="w-8 h-8 rounded-md bg-gray-50 flex items-center justify-center flex-shrink-0">
+                          <Mail className="w-4 h-4" />
+                        </span>
+
+                        <span className="text-sm font-medium truncate">
+                          {designer.email}
+                        </span>
+
                       </button>
+
+                      {/* Website */}
+                      {designer.website && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleContactAction('website')
+                          }
+                          className="w-full flex items-center gap-3 px-2 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-primary-600 transition-all duration-200 text-left"
+                        >
+
+                          <span className="w-8 h-8 rounded-md bg-gray-50 flex items-center justify-center flex-shrink-0">
+                            <ExternalLink className="w-4 h-4" />
+                          </span>
+
+                          <span className="text-sm font-medium truncate">
+                            {designer.website}
+                          </span>
+
+                        </button>
+                      )}
+
+                      {/* Instagram */}
+                      {designer.instagram_url && (
+                        <a
+                          href={designer.instagram_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full flex items-center gap-3 px-2 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-pink-500 transition-all duration-200"
+                        >
+
+                          <span className="w-8 h-8 rounded-md bg-gray-50 flex items-center justify-center flex-shrink-0">
+                            <FaInstagram className="w-4 h-4" />
+                          </span>
+
+                          <span className="text-sm font-medium">
+                            Instagram Portfolio
+                          </span>
+
+                        </a>
+                      )}
+
                     </div>
-                  )}
-                
-                </div>
+
+                    {/* Get Directions */}
+                    {designer.google_location_url && (
+                      <button
+                        type="button"
+                        onClick={handleGetDirections}
+                        className="w-full mt-5 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white py-2.5 px-4 rounded-lg font-semibold text-sm transition-all duration-200"
+                      >
+
+                        <Navigation className="w-4 h-4" />
+
+                        <span>
+                          Get Directions
+                        </span>
+
+                      </button>
+                    )}
+
+                  </div>
+                ) : (
+
+                  /* Login Required */
+                  <div className="mt-5 bg-blue-50 border border-blue-200 rounded-lg p-4">
+
+                    <p className="text-blue-800 text-sm text-center leading-relaxed">
+                      Please sign in to view contact information
+                      and get in touch with this designer.
+                    </p>
+
+                  </div>
+                )}
+
+                {/* Get Quote */}
+                {user && !isDesigner && (
+                  <div className="mt-5 pt-5 border-t border-gray-100">
+
+                    <button
+                      type="button"
+                      onClick={handleGetQuote}
+                      className="w-full btn-primary"
+                    >
+                      Get Quote
+                    </button>
+
+                  </div>
+                )}
+
+              </div>
+
               {/* Awards */}
               {designer.awards &&
                 designer.awards.length > 0 && (
@@ -734,8 +782,11 @@ const DesignerDetail = () => {
                 )}
 
             </div>
+
           </div>
+
         </div>
+
       </div>
 
       {/* Auth Modal */}
@@ -751,9 +802,9 @@ const DesignerDetail = () => {
           window.location.reload();
         }}
       />
+
     </>
   );
 };
-
 
 export default DesignerDetail;
