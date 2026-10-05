@@ -138,13 +138,23 @@ const QuoteViewer = () => {
 
       if (quoteError) throw quoteError;
 
-      const { data: itemsData, error: itemsError } = await supabase
-        .from('quote_items')
-        .select('*')
-        .eq('quote_id', quoteId)
-        .order('created_at', { ascending: true });
+     const { data: itemsData, error: itemsError } = await supabase
+  .from('quote_items')
+  .select('*')
+  .eq('quote_id', quoteId)
+  .order('created_at', { ascending: true });
 
-      if (itemsError) throw itemsError;
+console.log("========================================");
+console.log("QUOTE VIEWER DEBUG");
+console.log("PROJECT ID:", projectId);
+console.log("QUOTE ID:", quoteId);
+console.log("QUOTE DATA:", quoteData);
+console.log("QUOTE ITEMS DATA:", itemsData);
+console.log("QUOTE ITEMS COUNT:", itemsData?.length ?? 0);
+console.log("QUOTE ITEMS ERROR:", itemsError);
+console.log("========================================");
+
+if (itemsError) throw itemsError;
 
       setQuote({
         ...quoteData,
