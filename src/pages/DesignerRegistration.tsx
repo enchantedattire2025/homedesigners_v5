@@ -476,6 +476,9 @@ const DesignerRegistration = () => {
             }
           }
         });
+        console.log("USER:", authData?.user);
+console.log("SESSION:", authData?.session);
+console.log("USER ID:", authData?.user?.id);
 
         if (authError) {
           if (authError.message.includes('User already registered')) {
