@@ -59,6 +59,42 @@ export const supabase = hasValidCredentials
 function createMockClient(): any {
   console.warn('Supabase credentials not configured. Please click "Connect to Supabase" to set up your project.');
 
+  const notConfiguredError = { message: 'Supabase not configured' };
+  const connectError = { message: 'Please connect to Supabase to enable database operations. Click "Connect to Supabase" in the top right.' };
+
+  // A chainable query builder that supports any combination of filter/order/limit
+  // methods and ultimately resolves to empty data with a "not configured" error.
+  const createChainableQuery = (): any => {
+    const query: any = {
+      // Terminal methods that return a Promise
+      then: (resolve: any, reject: any) => Promise.resolve({ data: null, error: notConfiguredError }).then(resolve, reject),
+      catch: (reject: any) => Promise.resolve({ data: null, error: notConfiguredError }).catch(reject),
+      finally: (cb: any) => Promise.resolve({ data: null, error: notConfiguredError }).finally(cb),
+      single: () => Promise.resolve({ data: null, error: notConfiguredError }),
+      maybeSingle: () => Promise.resolve({ data: null, error: notConfiguredError }),
+      // Chainable filter/order methods that return self
+      eq: () => query,
+      neq: () => query,
+      gt: () => query,
+      gte: () => query,
+      lt: () => query,
+      lte: () => query,
+      like: () => query,
+      ilike: () => query,
+      in: () => query,
+      not: () => query,
+      or: () => query,
+      filter: () => query,
+      order: () => query,
+      range: () => query,
+      limit: () => query,
+      offset: () => query,
+      // Select after insert/update/upsert
+      select: () => query,
+    };
+    return query;
+  };
+
   return {
     auth: {
       signUp: () => Promise.resolve({
@@ -74,43 +110,14 @@ function createMockClient(): any {
       getUser: () => Promise.resolve({ data: { user: null }, error: null }),
       onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } })
     },
-    from: (table: string) => ({
-      select: (columns?: string) => ({
-        eq: (column: string, value: any) => ({
-          order: (column: string, options?: any) => Promise.resolve({ data: [], error: null }),
-          single: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
-          maybeSingle: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } })
-        }),
-        order: (column: string, options?: any) => Promise.resolve({ data: [], error: null }),
-        single: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
-        maybeSingle: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } })
-      }),
-      insert: (data: any) => ({
-        select: () => ({
-          single: () => Promise.resolve({
-            data: null,
-            error: { message: 'Please connect to Supabase to enable database operations. Click "Connect to Supabase" in the top right.' }
-          })
-        })
-      }),
-      update: (data: any) => ({
-        eq: (column: string, value: any) => ({
-          select: () => ({
-            single: () => Promise.resolve({
-              data: null,
-              error: { message: 'Please connect to Supabase to enable database operations. Click "Connect to Supabase" in the top right.' }
-            })
-          })
-        })
-      }),
-      delete: () => ({
-        eq: (column: string, value: any) => Promise.resolve({
-          data: null,
-          error: { message: 'Please connect to Supabase to enable database operations. Click "Connect to Supabase" in the top right.' }
-        })
-      })
+    from: (_table: string) => ({
+      select: () => createChainableQuery(),
+      insert: () => createChainableQuery(),
+      update: () => createChainableQuery(),
+      upsert: () => createChainableQuery(),
+      delete: () => createChainableQuery(),
     }),
-    channel: (name: string) => ({
+    channel: (_name: string) => ({
       on: () => ({ subscribe: () => ({}) }),
       unsubscribe: () => {},
       subscribe: () => ({})
