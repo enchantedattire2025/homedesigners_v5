@@ -6,6 +6,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useDesignerProfile } from '../hooks/useDesignerProfile';
 import { supabase } from '../lib/supabase';
 import WelcomeModal from '../components/WelcomeModal';
+import RegistrationSuccessModal from '../components/RegistrationSuccessModal';
 
 const DesignerRegistration = () => {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ const DesignerRegistration = () => {
   const [success, setSuccess] = useState<string | null>(null);
   const [formInitialized, setFormInitialized] = useState(false);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const [showRegistrationSuccess, setShowRegistrationSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [emailExists, setEmailExists] = useState(false);
   const [checkingEmail, setCheckingEmail] = useState(false);
@@ -559,11 +561,9 @@ const DesignerRegistration = () => {
               loginMessage.includes('email not confirmed') ||
               loginMessage.includes('email confirmation')
             ) {
-              throw new Error(
-                'Your account was created, but email confirmation is enabled. ' +
-                'Confirm the email first, or disable "Confirm Email" in Supabase Authentication → Email ' +
-                'for this client-side registration flow.'
-              );
+              setShowRegistrationSuccess(true);
+              setLoading(false);
+              return;
             }
 
             throw new Error(
@@ -646,6 +646,11 @@ const DesignerRegistration = () => {
 
   const handleWelcomeModalClose = () => {
     setShowWelcomeModal(false);
+    navigate('/');
+  };
+
+  const handleRegistrationSuccessClose = () => {
+    setShowRegistrationSuccess(false);
     navigate('/');
   };
 
@@ -1306,6 +1311,12 @@ const DesignerRegistration = () => {
       <WelcomeModal
         isOpen={showWelcomeModal}
         onClose={handleWelcomeModalClose}
+        userType="designer"
+      />
+
+      <RegistrationSuccessModal
+        isOpen={showRegistrationSuccess}
+        onClose={handleRegistrationSuccessClose}
         userType="designer"
       />
     </>

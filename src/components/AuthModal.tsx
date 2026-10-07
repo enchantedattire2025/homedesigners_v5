@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Mail, Lock, User, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import RegistrationSuccessModal from './RegistrationSuccessModal';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -33,6 +34,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [success, setSuccess] = useState('');
+  const [showRegistrationSuccess, setShowRegistrationSuccess] = useState(false);
 
   // Prevent body scroll when modal is open
   useEffect(() => {
@@ -218,12 +220,8 @@ const AuthModal: React.FC<AuthModalProps> = ({
           const confirmationRequired = data.user.identities && data.user.identities.length === 0;
 
           if (confirmationRequired) {
-            setSuccess('Account created! Please check your email and click the confirmation link to complete registration.');
-            // Keep the modal open so user sees the message
-            setTimeout(() => {
-              clearForm();
-              onClose();
-            }, 5000);
+            setShowRegistrationSuccess(true);
+            clearForm();
           } else {
             // Auto-confirmation is enabled (for development)
             setSuccess('Account created successfully! You can now sign in.');
@@ -326,6 +324,12 @@ const AuthModal: React.FC<AuthModalProps> = ({
   const handleModeChange = (newMode: 'login' | 'signup') => {
     clearForm();
     onModeChange(newMode);
+  };
+
+  const handleRegistrationSuccessClose = () => {
+    setShowRegistrationSuccess(false);
+    onClose();
+    onModeChange('login');
   };
 
   if (!isOpen) return null;
@@ -474,6 +478,12 @@ const AuthModal: React.FC<AuthModalProps> = ({
           </p>
         </div>
       </div>
+
+      <RegistrationSuccessModal
+        isOpen={showRegistrationSuccess}
+        onClose={handleRegistrationSuccessClose}
+        userType={userType || 'customer'}
+      />
     </div>
   );
 };
