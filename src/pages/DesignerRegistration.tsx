@@ -497,125 +497,40 @@ const DesignerRegistration = () => {
           throw new Error('Failed to create user account. Please try again.');
         }
 
-        /*
-         * IMPORTANT:
-         * The designers INSERT is protected by RLS:
-         *
-         *   auth.uid() = user_id
-         *
-         * Therefore we MUST have an authenticated Supabase session before
-         * inserting the designer profile.
-         *
-         * When "Confirm Email" is enabled in Supabase, signUp() normally
-         * returns session = null. In that situation a client-side INSERT
-         * cannot pass the authenticated RLS policy until the email is
-         * confirmed.
-         *
-         * This registration flow therefore tries to establish a session
-         * before touching the designers table.
-         */
-        let currentUser = authData.user;
-        let currentSession = authData.session;
+        const userId = authData.user.id;
 
-        console.log('DESIGNER SIGNUP USER:', currentUser);
-        console.log('DESIGNER SIGNUP SESSION:', currentSession);
-
-        // Refresh/read the current session in case Supabase persisted it.
-        if (!currentSession) {
-          const { data: sessionData, error: sessionError } =
-            await supabase.auth.getSession();
-
-          if (sessionError) {
-            console.error('Get session error:', sessionError);
-          } else {
-            currentSession = sessionData.session;
-            if (currentSession?.user) {
-              currentUser = currentSession.user;
-            }
-          }
-        }
-
-        /*
-         * If signUp did not create a session, try signing in with the
-         * password just entered. This works when email confirmation is
-         * disabled. If confirmation is enabled, Supabase will reject this
-         * login until the email is confirmed, so we show a clear message
-         * instead of producing the confusing RLS error.
-         */
-        if (!currentSession) {
-          const { data: loginData, error: loginError } =
-            await supabase.auth.signInWithPassword({
-              email: cleanedData.email,
-              password: formData.password,
-            });
-
-          if (!loginError && loginData?.session) {
-            currentSession = loginData.session;
-            currentUser = loginData.user || currentUser;
-          } else {
-            console.error('Automatic login after signup failed:', loginError);
-
-            const loginMessage = loginError?.message?.toLowerCase() || '';
-
-            if (
-              loginMessage.includes('email not confirmed') ||
-              loginMessage.includes('email confirmation')
-            ) {
-              setShowRegistrationSuccess(true);
-              setLoading(false);
-              return;
-            }
-
-            throw new Error(
-              loginError?.message ||
-              'Could not establish an authenticated session. Please try again.'
-            );
-          }
-        }
-
-        // Final safety check before the RLS-protected designers INSERT.
-        if (!currentSession || !currentUser) {
-          throw new Error(
-            'Could not establish an authenticated Supabase session. ' +
-            'The designer profile was not created.'
-          );
-        }
-
-        console.log('FINAL AUTH USER ID:', currentUser.id);
-        console.log('FINAL AUTH SESSION EXISTS:', !!currentSession);
-
-        // Upload profile image only after authentication is available.
+        // Upload profile image if one was selected.
         if (profileImageFile) {
-          const uploadedUrl = await uploadProfileImage(currentUser.id);
+          const uploadedUrl = await uploadProfileImage(userId);
           if (uploadedUrl) {
             profileImageUrl = uploadedUrl;
           }
         }
 
-        // RLS requires auth.uid() = user_id, so use the authenticated user's ID.
-        const { error: designerError } = await supabase
-          .from('designers')
-          .insert([{
-            user_id: currentUser.id,
-            name: cleanedData.name,
-            email: cleanedData.email,
-            phone: cleanedData.phone,
-            specialization: cleanedData.specialization,
-            experience: cleanedData.experience,
-            location: cleanedData.location,
-            bio: cleanedData.bio,
-            website: cleanedData.website,
-            starting_price: cleanedData.starting_price,
-            instagram_url: cleanedData.instagram_url,
-            profile_image: profileImageUrl,
-            business_type: cleanedData.business_type,
-            google_location_url: cleanedData.google_location_url,
-            services: cleanedData.services,
-            materials_expertise: cleanedData.materials_expertise,
-            awards: cleanedData.awards,
-            verification_status: 'pending',
-            is_verified: false
-          }]);
+        // Use the SECURITY DEFINER function so the designer profile is saved
+        // even when email confirmation is enabled and there is no session yet.
+        const { error: designerError } = await supabase.rpc(
+          'register_designer_profile',
+          {
+            p_user_id: userId,
+            p_name: cleanedData.name,
+            p_email: cleanedData.email,
+            p_phone: cleanedData.phone,
+            p_specialization: cleanedData.specialization,
+            p_experience: cleanedData.experience,
+            p_location: cleanedData.location,
+            p_bio: cleanedData.bio,
+            p_website: cleanedData.website,
+            p_starting_price: cleanedData.starting_price,
+            p_instagram_url: cleanedData.instagram_url,
+            p_profile_image: profileImageUrl,
+            p_business_type: cleanedData.business_type,
+            p_google_location_url: cleanedData.google_location_url,
+            p_services: cleanedData.services,
+            p_materials_expertise: cleanedData.materials_expertise,
+            p_awards: cleanedData.awards,
+          }
+        );
 
         if (designerError) {
           console.error('Designer profile insert error:', designerError);
@@ -623,6 +538,14 @@ const DesignerRegistration = () => {
           throw new Error(
             `Failed to create designer profile: ${designerError.message}`
           );
+        }
+
+        // If signUp did not create a session, email confirmation is enabled.
+        // Show the confirmation modal instead of trying to log in.
+        if (!authData.session) {
+          setShowRegistrationSuccess(true);
+          setLoading(false);
+          return;
         }
 
         setSuccess('Registration submitted successfully! Your profile is pending admin approval. You will be able to login once the admin verifies your profile.');
