@@ -499,8 +499,11 @@ const DesignerRegistration = () => {
 
         const userId = authData.user.id;
 
-        // Upload profile image if one was selected.
-        if (profileImageFile) {
+        // Upload profile image only if we have an authenticated session.
+        // When email confirmation is enabled, signUp() returns no session,
+        // so the storage upload would fail RLS. The user can add their
+        // profile image later from the edit profile page after logging in.
+        if (profileImageFile && authData.session) {
           const uploadedUrl = await uploadProfileImage(userId);
           if (uploadedUrl) {
             profileImageUrl = uploadedUrl;
